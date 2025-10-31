@@ -30,7 +30,8 @@
 .popup {
   position: fixed; /* Changed from absolute */
   width: 400px; /* Fixed width for popup */
-  height: 500px; /* Fixed height for popup */
+  min-height: 500px; /* Minimum height for popup */
+  height: auto; /* Allow height to grow based on content */
   background: #1a1a1a;
   border-radius: 12px;
 }
@@ -58,7 +59,8 @@
 html,
 body {
   width: 400px;
-  height: 500px;
+  min-height: 500px;
+  height: auto;
   margin: 0;
   padding: 0;
   background-color: #1a1a1a;

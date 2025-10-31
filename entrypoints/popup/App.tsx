@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { marked } from 'marked';
-import { Clock, Settings, Plus, Search, FilePlus } from 'lucide-react';
+import { Clock, Settings, Plus, Search, Send } from 'lucide-react';
 
 function App() {
   const [inputPrompt, setInputPrompt] = useState('');
@@ -244,7 +244,7 @@ function App() {
         <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
           <Clock className='w-5 h-5 text-gray-400' />
         </button>
-        <h1 className="text-[16px] items-center justify-center md:text-3xl text-neutral-200">
+        <h1 className="text-[18px] items-center justify-center font-sans tracking-wide text-neutral-200">
           Manifes<span className='font-bold italic text-md text-yellow-400'>T</span><span className='text-yellow-400'>est</span>
         </h1>
         <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
@@ -255,77 +255,35 @@ function App() {
       {/* Info Section */}
       <div className='pt-1'>
         <div className="px-7">
-          <h1 className="text-[10px] md:text-md text-neutral-300">
+          <h1 className="text-[16px] font-medium tracking-wide text-neutral-300">
             Open a File or Webpage to Create a Test
           </h1>
-          <p className="text-xs md:text-sm font-light text-neutral-500">
+          <p className="text-xs font-light tracking-wide text-neutral-500">
             No relevant content was found on this site.
           </p>
         </div>
       </div>
-      {/* Controls and Response Section - Only show when needed */}
+
+      {/* Hide AI Parameters from UI */}
       {(loading || error || response) && (
-        <>
-          {/* Controls */}
-          <div className="px-4 pb-2">
-            <div className="mt-2">
-              <input
-                type="range"
-                value={temperature}
-                onChange={(e) => handleTemperatureChange(Number(e.target.value))}
-                min="0"
-                max="2"
-                step="0.01"
-                className="w-full accent-yellow-500"
-              />
-              <label className="text-sm text-neutral-300">
-                Temperature: <span>{temperature}</span>
-              </label>
+        <div className="px-4 pb-2">
+          {loading && (
+            <div className="mt-2 p-4 bg-[#202020] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.16),0_0_0_3px_rgb(51,51,51)]">
+              <span className="animate-pulse text-neutral-300">...</span>
             </div>
-            <div className="mt-2">
-              <input
-                type="range"
-                value={topK}
-                onChange={(e) => handleTopKChange(Number(e.target.value))}
-                min="1"
-                max={maxTopK}
-                step="1"
-                className="w-full accent-yellow-500"
-              />
-              <label className="text-sm text-neutral-300">
-                Top-k: <span>{topK}</span>
-              </label>
+          )}
+          {error && (
+            <div className="mt-2 p-4 bg-[#202020] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.16),0_0_0_3px_rgb(51,51,51)] text-red-600">
+              {error}
             </div>
-            <button
-              onClick={handleReset}
-              disabled={!response && !error && !loading}
-              className="w-full bg-[#ccc] text-black rounded-lg border-none min-h-[40px] px-2 py-2 mt-2 cursor-pointer disabled:bg-[#ddd] disabled:text-[#aaa] disabled:cursor-not-allowed"
-            >
-              Reset
-            </button>
-          </div>
-
-          {/* Response/Error/Loading */}
-
-          <div className="px-4 pb-2">
-            {loading && (
-              <div className="mt-2 p-4 bg-[#202020] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.16),0_0_0_3px_rgb(51,51,51)]">
-                <span className="animate-pulse text-neutral-300">...</span>
-              </div>
-            )}
-            {error && (
-              <div className="mt-2 p-4 bg-[#202020] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.16),0_0_0_3px_rgb(51,51,51)] text-red-600">
-                {error}
-              </div>
-            )}
-            {response && !loading && (
-              <div
-                className="mt-2 p-4 bg-[#202020] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.16),0_0_0_3px_rgb(51,51,51)] max-h-[300px] overflow-y-auto text-neutral-200"
-                dangerouslySetInnerHTML={{ __html: marked.parse(response) }}
-              />
-            )}
-          </div>
-        </>
+          )}
+          {response && !loading && (
+            <div
+              className="mt-2 p-4 bg-[#202020] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.16),0_0_0_3px_rgb(51,51,51)] max-h-[300px] overflow-y-auto text-neutral-200"
+              dangerouslySetInnerHTML={{ __html: marked.parse(response) }}
+            />
+          )}
+        </div>
       )}
 
       {!loading && !error && !response && (
@@ -333,17 +291,17 @@ function App() {
           <div className='border-2 border-dashed border-[#3A3A3A] rounded-2xl p-4 md:p-8 w-1/2 max-w-md flex flex-col items-center justify-between gap-4 my-4 max-h-[60vh] md:max-h-[50vh] overflow-hidden'>
             <div className='flex-1 flex items-center justify-center'>
               <div className='w-12 h-12 md:w-8 md:h-8 flex items-center pt-2 justify-center'>
-                <FilePlus className='w-10 h-10 md:w-14 md:h-14 text-yellow-500' strokeWidth={1.5} />
+                <Plus className='w-10 h-10 md:w-14 md:h-14 text-yellow-500' strokeWidth={1.5} />
               </div>
             </div>
             <div className='text-center space-y-1'>
-              <p className='text-md md:text-xl text-gray-300 font-medium'>Drag 'n' Drop</p>
+              <p className='text-md md:text-xl text-gray-300 font-medium tracking-wide'>Drop Files Here</p>
               <p className='text-[12px] text-gray-500'>.pdf, .doc and .docx</p>
             </div>
           </div>
         </div>
-
       )}
+
       {/* Input Section */}
       <div className='w-full flex justify-center pb-4 px-4 shrink-0'>
         <div className='w-full max-w-2xl'>
@@ -353,22 +311,28 @@ function App() {
               value={inputPrompt}
               onChange={(e) => setInputPrompt(e.target.value)}
               placeholder='Type a topic or add a link'
-              className='bg-transparent w-full outline-none text-neutral-300 placeholder-neutral-500 py-1 pb-2 text-[12px]'
+              className='bg-transparent w-full outline-none text-neutral-300 placeholder-neutral-500 py-1 pb-2 text-[12px] font-light tracking-wide'
             />
-            <div className='flex items-center gap-2'>
-              <button
-                className='w-6 h-6 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors'
-                onClick={handlePromptSubmit}
-                disabled={!inputPrompt.trim()}
-              >
-                <Plus className='w-5 h-5 text-yellow-500' strokeWidth={2.5} />
-              </button>
-              <button
-                className='w-6 h-6 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors'
-                onClick={handleGenerateMCQs}
-              >
-                <Search className='w-4 h-4 text-yellow-500' strokeWidth={2.5} />
-              </button>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-2'>
+                <button className='w-6 h-6 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors'>
+                  <Plus className='w-5 h-5 text-yellow-500' strokeWidth={2.5} />
+                </button>
+                <button
+                  className='w-6 h-6 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors'
+                  onClick={handleGenerateMCQs}
+                >
+                  <Search className='w-4 h-4 text-yellow-500' strokeWidth={2.5} />
+                </button>
+              </div>
+              {inputPrompt.trim() && (
+                <button
+                  className='w-6 h-6 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors'
+                  onClick={handlePromptSubmit}
+                >
+                  <Send className='w-4 h-4 text-yellow-500' strokeWidth={2.5} />
+                </button>
+              )}
             </div>
           </div>
         </div>

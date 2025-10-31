@@ -1,23 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Clock, Settings, Plus, Search, FilePlus, ArrowLeft, Maximize2 } from 'lucide-react';
+import { Clock, Settings, Plus, Search, FilePlus, ArrowLeft, Maximize2, X } from 'lucide-react';
 
 function App() {
   const [screen, setScreen] = useState('home'); // 'home', 'preview', 'test', 'results'
   const [inputPrompt, setInputPrompt] = useState('');
   const [temperature, setTemperature] = useState(1.0);
   const [topK, setTopK] = useState(3);
-  const [testData, setTestData] = useState(null);
+  const [testData, setTestData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<any>(null);
   const [defaultTemp, setDefaultTemp] = useState(1.0);
   const [maxTopK, setMaxTopK] = useState(8);
   
   // Test state
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [userAnswers, setUserAnswers] = useState({});
+  const [userAnswers, setUserAnswers] = useState<any>({});
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
   const [testStarted, setTestStarted] = useState(false);
+  const [testType, setTestType] = useState<string>('mcq');
+  const [numQuestions, setNumQuestions] = useState(10);
+  const [activeTabInfo, setActiveTabInfo] = useState<any>(null);
 
   useEffect(() => {
     loadSavedState();
@@ -32,7 +35,7 @@ function App() {
   useEffect(() => {
     if (testStarted && screen === 'test' && timeLeft > 0) {
       const timer = setInterval(() => {
-        setTimeLeft(prev => {
+        setTimeLeft((prev: number) => {
           if (prev <= 1) {
             handleSubmitTest();
             return 0;
@@ -55,12 +58,12 @@ function App() {
       const limitedTopK = defaults.defaultTopK > 3 ? 3 : defaults.defaultTopK;
       setTopK(limitedTopK);
       setMaxTopK(defaults.maxTopK);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to init defaults:', e);
     }
   }
 
-  async function runPrompt(prompt, params) {
+  async function runPrompt(prompt: string, params: any) {
     try {
       let currentSession = session;
       if (!currentSession) {
@@ -68,7 +71,7 @@ function App() {
         setSession(currentSession);
       }
       return currentSession.prompt(prompt);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Prompt failed', e);
       reset();
       throw e;
@@ -82,7 +85,7 @@ function App() {
     setSession(null);
   }
 
-  function extractJSON(text) {
+  function extractJSON(text: string) {
     try {
       // First attempt: Try parsing the entire text as JSON
       try {
@@ -125,7 +128,7 @@ function App() {
         
         return JSON.parse(fixed);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('JSON parsing error:', error);
       console.error('Failed text:', text);
       throw new Error(`Failed to parse response as JSON: ${error.message}`);
@@ -142,30 +145,16 @@ function App() {
       }
 
       const page = await fetchActiveTabContent();
+      setActiveTabInfo({ title: page.title, favicon: page.favicon });
       const pageText = `${page.title}\n\n${page.text}`.slice(0, 200000);
 
-      const generationPrompt = `Generate exactly 10 multiple-choice questions from the content below.
-
-Output ONLY valid JSON in this exact format (no markdown, no code fences, no extra text):
-
-{
-  "source_title": "title here",
-  "questions": [
-    {
-      "question": "question text",
-      "options": ["option A", "option B", "option C", "option D"],
-      "answer_index": 0
-    }
-  ]
-}
-
-Rules:
-- answer_index must be 0, 1, 2, or 3
-- All questions must have exactly 4 options
-- Output valid JSON only
-
-Content:
-${pageText}`;
+      const count = Math.max(3, Math.min(30, numQuestions));
+      const baseHeader = `Output ONLY valid JSON (no markdown, no code fences).`;
+      const generationPrompt = (testType === 'mcq')
+        ? `Generate exactly ${count} multiple-choice questions from the content below.\n\n${baseHeader}\n\n{\n  "source_title": "title here",\n  "questions": [\n    {\n      "question": "question text",\n      "options": ["option A", "option B", "option C", "option D"],\n      "answer_index": 0\n    }\n  ]\n}\n\nRules:\n- answer_index must be 0, 1, 2, or 3\n- All questions must have exactly 4 options\n- Output valid JSON only\n\nContent:\n${pageText}`
+        : (testType === 'true_false')
+        ? `Generate exactly ${count} true/false questions from the content below.\n\n${baseHeader}\n\n{\n  "source_title": "title here",\n  "questions": [\n    {\n      "question": "statement text",\n      "answer": true\n    }\n  ]\n}\n\nRules:\n- answer must be true or false (boolean)\n- Output valid JSON only\n\nContent:\n${pageText}`
+        : `Generate exactly ${count} fill-in-the-blank questions from the content below.\n\n${baseHeader}\n\n{\n  "source_title": "title here",\n  "questions": [\n    {\n      "question": "Sentence with a ____ blank",\n      "answer": "missing_word_or_phrase"\n    }\n  ]\n}\n\nRules:\n- Keep answers concise\n- Output valid JSON only\n\nContent:\n${pageText}`;
 
 
       if (!('LanguageModel' in self)) {
@@ -206,7 +195,7 @@ ${pageText}`;
           // Success! Break out of retry loop
           console.log('Successfully parsed JSON:', parsed);
           break;
-        } catch (e) {
+        } catch (e: any) {
           attempts++;
           console.error(`Attempt ${attempts} failed:`, e);
           
@@ -224,7 +213,7 @@ ${pageText}`;
       
       setTestData(parsed);
       setScreen('preview');
-    } catch (e) {
+    } catch (e: any) {
       console.error('Generation error:', e);
       setError(e.toString());
     } finally {
@@ -232,15 +221,15 @@ ${pageText}`;
     }
   }
 
-  async function fetchActiveTabContent() {
+  async function fetchActiveTabContent(): Promise<any> {
     const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     if (!tabs || !tabs.length) {
       throw new Error('No active tab found');
     }
     const tab = tabs[0];
     const results = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: () => ({ title: document.title, text: document.body.innerText })
+      target: { tabId: tab.id as number },
+      func: () => ({ title: document.title, text: document.body.innerText, favicon: (document.querySelector('link[rel~="icon"]') as HTMLLinkElement)?.href || '' })
     });
     if (!results || !results[0] || !results[0].result) {
       throw new Error('Failed to extract page content');
@@ -248,26 +237,52 @@ ${pageText}`;
     return results[0].result;
   }
 
-  function generateFallbackMCQs(page) {
+  function generateFallbackMCQs(page: any) {
     const title = page.title || 'Untitled Page';
     const sentences = (page.text || '').split(/[\.\n]\s+/).filter(Boolean);
     const qlist = [];
 
-    for (let i = 0; i < Math.min(10, sentences.length); i++) {
+    const count = Math.max(3, Math.min(30, numQuestions));
+
+    for (let i = 0; i < Math.min(count, sentences.length); i++) {
       const s = sentences[i].slice(0, 80);
-      qlist.push({
-        question: `Question ${i + 1}: What does this statement refer to?`,
-        options: ['Option A', 'Option B', 'Option C', 'Option D'],
-        answer_index: 0
-      });
+      if (testType === 'mcq') {
+        qlist.push({
+          question: `Question ${i + 1}: What does this statement refer to?`,
+          options: ['Option A', 'Option B', 'Option C', 'Option D'],
+          answer_index: 0
+        });
+      } else if (testType === 'true_false') {
+        qlist.push({
+          question: `True or False: ${s}?`,
+          answer: true
+        });
+      } else {
+        qlist.push({
+          question: `Fill in the blank: ${s} ____`,
+          answer: 'answer'
+        });
+      }
     }
 
-    while (qlist.length < 10) {
-      qlist.push({
-        question: `Question ${qlist.length + 1}: Select the correct answer`,
-        options: ['Option A', 'Option B', 'Option C', 'Option D'],
-        answer_index: 0
-      });
+    while (qlist.length < count) {
+      if (testType === 'mcq') {
+        qlist.push({
+          question: `Question ${qlist.length + 1}: Select the correct answer`,
+          options: ['Option A', 'Option B', 'Option C', 'Option D'],
+          answer_index: 0
+        });
+      } else if (testType === 'true_false') {
+        qlist.push({
+          question: `True or False: Placeholder statement ${qlist.length + 1}`,
+          answer: true
+        });
+      } else {
+        qlist.push({
+          question: `Fill in the blank: Placeholder sentence ${qlist.length + 1} ____`,
+          answer: 'answer'
+        });
+      }
     }
     return { source_title: title, questions: qlist };
   }
@@ -287,7 +302,7 @@ ${pageText}`;
       if (result.topK) setTopK(result.topK);
       if (result.testData) setTestData(result.testData);
       if (result.error) setError(result.error);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to load saved state:', e);
     }
   }
@@ -301,7 +316,7 @@ ${pageText}`;
         testData,
         error
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to save state:', e);
     }
   }
@@ -327,8 +342,8 @@ ${pageText}`;
     setUserAnswers({});
   }
 
-  function handleAnswerSelect(questionIndex, optionIndex) {
-    setUserAnswers(prev => ({
+  function handleAnswerSelect(questionIndex: number, optionIndex: number) {
+    setUserAnswers((prev: any) => ({
       ...prev,
       [questionIndex]: optionIndex
     }));
@@ -339,7 +354,7 @@ ${pageText}`;
     setScreen('results');
   }
 
-  function formatTime(seconds) {
+  function formatTime(seconds: number) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -347,7 +362,7 @@ ${pageText}`;
 
   function calculateScore() {
     let correct = 0;
-    testData.questions.forEach((q, idx) => {
+    testData.questions.forEach((q: any, idx: number) => {
       if (userAnswers[idx] === q.answer_index) {
         correct++;
       }
@@ -379,12 +394,8 @@ ${pageText}`;
             {error || 'Click the search button to generate a test from the current page.'}
           </p>
         </div>
-
-        {loading ? (
-          <div className='flex-1 flex items-center justify-center'>
-            <div className="text-yellow-500 animate-pulse">Generating test...</div>
-          </div>
-        ) : (
+        
+        {!loading && (
           <div className='flex-1 flex items-center justify-center p-2 overflow-hidden'>
             <div className='border-2 border-dashed border-[#3A3A3A] rounded-2xl p-8 w-1/2 max-w-md flex flex-col items-center gap-4'>
               <FilePlus className='w-14 h-14 text-yellow-500' strokeWidth={1.5} />
@@ -406,6 +417,16 @@ ${pageText}`;
                 placeholder='Type a topic or add a link'
                 className='bg-transparent w-full outline-none text-neutral-300 placeholder-neutral-500 py-1 pb-2 text-[12px]'
               />
+              <div className='flex items-center gap-2 pt-1'>
+                <button onClick={() => setTestType('mcq')} className={(testType==='mcq' ? 'bg-yellow-500 text-black' : 'bg-[#2A2A2A] text-gray-300 hover:bg-[#333]') + ' px-3 py-1.5 rounded-lg text-[12px]'}>Choose</button>
+                <button onClick={() => setTestType('true_false')} className={(testType==='true_false' ? 'bg-yellow-500 text-black' : 'bg-[#2A2A2A] text-gray-300 hover:bg-[#333]') + ' px-3 py-1.5 rounded-lg text-[12px]'}>True/ False</button>
+                <button onClick={() => setTestType('fill_in')} className={(testType==='fill_in' ? 'bg-yellow-500 text-black' : 'bg-[#2A2A2A] text-gray-300 hover:bg-[#333]') + ' px-3 py-1.5 rounded-lg text-[12px]'}>Fill In</button>
+              </div>
+              <div className='flex items-center gap-3 px-1'>
+                <span className='text-[11px] text-gray-400'>Questions</span>
+                <input type='range' min={3} max={30} value={numQuestions} onChange={(e)=> setNumQuestions(parseInt(e.target.value,10))} className='w-full accent-yellow-500'/>
+                <span className='text-[12px] text-gray-300 w-8 text-right'>{numQuestions}</span>
+              </div>
               <div className='flex items-center gap-2'>
                 <button
                   className='w-6 h-6 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors disabled:opacity-50'
@@ -424,6 +445,53 @@ ${pageText}`;
             </div>
           </div>
         </div>
+        {loading && (
+          <div className='absolute inset-0 flex items-center justify-center bg-black/60'>
+            <div className='w-[400px] h-[500px] rounded-3xl relative' style={{ boxShadow: '0 0 40px rgba(255, 224, 102, 0.25), inset 0 0 50px rgba(118, 70, 255, 0.15)' }}>
+              <div className='absolute inset-0 rounded-3xl bg-gradient-to-br from-[#0c0c14] via-[#151526] to-[#0c0c14] border border-[#2b2b46]' />
+              <div className='relative z-10 flex items-center justify-between px-4 pt-3'>
+                <button onClick={() => { setLoading(false); reset(); }} className='flex items-center gap-2 group'>
+                  {activeTabInfo?.favicon ? (
+                    <img src={activeTabInfo.favicon} alt='site' className='w-6 h-6 rounded-sm border border-white/10' />
+                  ) : (
+                    <div className='w-6 h-6 rounded-sm bg-white/10' />
+                  )}
+                  <span className='text-[12px] text-gray-300 line-clamp-1 group-hover:underline'>{activeTabInfo?.title || 'Current page'}</span>
+                </button>
+                <button onClick={() => { setLoading(false); reset(); }} className='w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10'>
+                  <X className='w-4 h-4 text-gray-300' />
+                </button>
+              </div>
+              <div className='relative z-10 px-4 mt-3'>
+                <div className='h-28 overflow-hidden rounded-xl bg-black/30 border border-white/5 p-3'>
+                  <div className='space-y-2 animate-pulse'>
+                    <div className='h-3 bg-white/10 rounded' />
+                    <div className='h-3 bg-white/10 rounded w-4/5' />
+                    <div className='h-3 bg-white/10 rounded w-3/5' />
+                    <div className='h-3 bg-white/10 rounded w-2/3' />
+                  </div>
+                </div>
+              </div>
+              <div className='relative z-10 flex items-center justify-center h-[260px]'>
+                <div className='w-32 h-32 rounded-full border-4 border-transparent border-t-yellow-400 border-r-yellow-400 animate-spin' />
+              </div>
+              <div className='absolute bottom-4 left-0 right-0 px-4'>
+                <div className='flex items-center justify-between'>
+                  <button onClick={() => { setLoading(false); setScreen('home'); }} className='px-4 py-3 rounded-xl bg-[#1f1f2e] text-gray-300 text-sm hover:bg-[#2a2a3d]'>Go Home</button>
+                  <div className='flex items-center gap-3'>
+                    <button className='px-4 py-2 rounded-xl bg-[#1f1f2e] text-gray-300 text-[12px]' disabled>
+                      {testType === 'mcq' ? 'Choose' : testType === 'true_false' ? 'True/ False' : 'Fill In'}
+                    </button>
+                    <div className='w-12 h-20 rounded-2xl bg-[#101018] border border-white/10 flex items-center justify-center text-yellow-400 font-bold'>
+                      {numQuestions}
+                    </div>
+                  </div>
+                  <button onClick={() => { setLoading(false); reset(); }} className='px-6 py-3 rounded-2xl bg-yellow-500 text-black font-bold hover:bg-yellow-400'>Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -528,7 +596,7 @@ ${pageText}`;
             </h2>
 
             <div className='space-y-3'>
-              {question.options.map((option, idx) => (
+              {question.options.map((option: any, idx: number) => (
                 <button
                   key={idx}
                   onClick={() => handleAnswerSelect(currentQuestion, idx)}
@@ -594,7 +662,7 @@ ${pageText}`;
             </div>
             
             <div className='pt-6 space-y-3'>
-              {testData.questions.map((q, idx) => (
+            {testData.questions.map((q: any, idx: number) => (
                 <div key={idx} className='flex items-center justify-between text-sm'>
                   <span className='text-gray-400'>Question {idx + 1}</span>
                   <span className={userAnswers[idx] === q.answer_index ? 'text-green-500' : 'text-red-500'}>

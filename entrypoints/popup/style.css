@@ -31,7 +31,6 @@
   position: fixed; /* Changed from absolute */
   width: 400px; /* Fixed width for popup */
   height: 500px; /* Fixed height for popup */
-  overflow: hidden;
   background: #1a1a1a;
   border-radius: 12px;
 }
@@ -62,7 +61,6 @@ body {
   height: 500px;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   background-color: #1a1a1a;
 }
 

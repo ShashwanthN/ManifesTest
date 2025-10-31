@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  /* single values */
+  --color-Mpurple: #968EF3;
+  --color-text: #0D0D0D;
+  --color-border-grey: #4C4C4C;
+
+  /* a small scale (optional) */
+  --color-softCoral-100: #FFE9E9;
+  --color-softCoral-500: #FF6B6B;
+
+  /* your brutalistic palette (example) */
+  --color-mutedOlive: #A3B18A;
+  --color-warmBeige: #EADBC8;
+  --color-coolMint: #A8DADC;
+  --color-midnight: #1D3557;
+}
+
+
+/* Reset popup dimensions */
+.popup {
+  position: fixed; /* Changed from absolute */
+  width: 400px; /* Fixed width for popup */
+  height: 500px; /* Fixed height for popup */
+  overflow: hidden;
+  background: #1a1a1a;
+  border-radius: 12px;
+}
+
+/* Glow effect */
+.popup::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 15px rgba(98, 85, 245, 0.385),
+    inset 0 0 30px rgba(98, 85, 245, 0.388),
+    0 0 30px rgba(147, 51, 255, 0.08);
+  z-index: 10;
+}
+
+.popup > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Base styles */
+html,
+body {
+  width: 400px;
+  height: 500px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #1a1a1a;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}

@@ -95,15 +95,6 @@ I mean its pretty straight forward but -
 4. Choose generate options (question types, number of questions).
 5. Do the test — questions are generated from the current page and presented in the popup.
 
----
-
-## Placeholders for images (replace with real screenshots)
-
-* ![Placeholder: Extension popup screenshot](./assets/screenshot-popup.png)
-* ![Placeholder: Generated test screenshot](./assets/screenshot-test.png)
-* ![Placeholder: Settings / options screenshot](./assets/screenshot-settings.png)
-
----
 
 
 ## Troubleshooting & tips

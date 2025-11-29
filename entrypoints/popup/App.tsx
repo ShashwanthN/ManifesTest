@@ -709,50 +709,70 @@ function App() {
         {/* Loading Overlay */}
         {loading && (
           <div className='fixed inset-0 flex items-center justify-center bg-black/60 z-40'>
-            <div className='w-[400px] h-[500px] rounded-3xl relative' style={{ boxShadow: '0 0 40px rgba(255, 224, 102, 0.25), inset 0 0 50px rgba(118, 70, 255, 0.15)' }}>
-              <div className='absolute inset-0 rounded-3xl bg-linear-to-br from-[#0c0c14] via-[#151526] to-[#0c0c14] border border-[#2b2b46]' />
-              <div className='relative z-10 flex items-center justify-between px-4 pt-3'>
-                <button onClick={() => { setLoading(false); reset(); }} className='flex items-center gap-2 group'>
+            <div className='w-[720px] relative bg-[#0b0b10] border border-[#2b2b46] overflow-hidden' style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.6), inset 0 0 50px rgba(118,70,255,0.06)' }}>
+              {/* Header */}
+              <div className='flex items-center justify-between px-5 py-4 border-b border-white/5'>
+                <div className='flex items-center gap-3'>
                   {activeTabInfo?.favicon ? (
-                    <img src={activeTabInfo.favicon} alt='site' className='w-6 h-6 rounded-sm border border-white/10' />
+                    <img src={activeTabInfo.favicon} alt='site' className='w-8 h-8 rounded-sm border border-white/8' />
                   ) : (
-                    <div className='w-6 h-6 rounded-sm bg-white/10' />
+                    <div className='w-8 h-8 rounded-sm bg-white/6' />
                   )}
-                  <span className='text-[12px] text-gray-300 line-clamp-1 group-hover:underline'>{activeTabInfo?.title || 'Current page'}</span>
-                </button>
-                <button onClick={() => { setLoading(false); reset(); }} className='w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10'>
-                  <X className='w-4 h-4 text-gray-300' />
-                </button>
-              </div>
-              <div className='relative z-10 px-4 mt-3'>
-                <div className='h-28 overflow-hidden rounded-xl bg-black/30 border border-white/5 p-3'>
-                  <div className='space-y-2 animate-pulse'>
-                    <div className='h-3 bg-white/10 rounded' />
-                    <div className='h-3 bg-white/10 rounded w-4/5' />
-                    <div className='h-3 bg-white/10 rounded w-3/5' />
-                    <div className='h-3 bg-white/10 rounded w-2/3' />
+                  <div className='flex flex-col'>
+                    <div className='text-sm text-gray-100 font-semibold line-clamp-1'>{activeTabInfo?.title || 'Current page'}</div>
+                    <div className='text-xs text-gray-400'>{/* optional subtitle */}</div>
                   </div>
                 </div>
+                <div className='flex items-center gap-3'>
+                  <button onClick={() => { setLoading(false); reset(); }} className='w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10'>
+                    <X className='w-4 h-4 text-gray-300' />
+                  </button>
+                </div>
               </div>
-              <div className='relative z-10 flex items-center justify-center h-[260px]'>
-                <div className='text-gray-400 text-sm'>Generating test questions...</div>
-              </div>
-              <div className='absolute bottom-4 left-0 right-0 px-4'>
-                <div className='flex items-center justify-between'>
-                  <button onClick={() => { setLoading(false); setScreen('home'); }} className='px-4 py-3 rounded-xl bg-[#1f1f2e] text-gray-300 text-sm hover:bg-[#2a2a3d]'>Go Home</button>
-                  <div className='flex items-center gap-3'>
-                    <div className='flex flex-col gap-1'>
-                      {Array.from(selectedTypes).map(type => (
-                        <button key={type} className='px-4 py-2 rounded-xl bg-[#1f1f2e] text-gray-300 text-[12px]' disabled>
-                          {type === 'mcq' ? 'Choose' : type === 'true_false' ? 'True/ False' : 'Fill In'}
-                        </button>
-                      ))}
-                    </div>
-                    <div className='w-12 h-20 rounded-2xl bg-[#101018] border border-white/10 flex items-center justify-center text-yellow-400 font-bold'>
-                      {numQuestions}
+
+              {/* Main content - two columns */}
+              <div className='p-6 flex gap-6'>
+                {/* Left: preview + spinner */}
+                <div className='flex-1 bg-black/20 rounded-xl p-4 border border-white/5'>
+                  <div className='mb-3'>
+                    <div className='text-xs text-gray-400 mb-2'>Preview</div>
+                    <div className='h-40 overflow-hidden rounded-md text-sm text-gray-200 leading-relaxed'>
+                      {/* Show a trimmed preview of the page text if available */}
+                      {activeTabInfo?.title ? (
+                        <div className='prose max-w-none wrap-break-word'>{activeTabInfo.title}</div>
+                      ) : (
+                        <div className='text-gray-400'>Page content preview unavailable</div>
+                      )}
                     </div>
                   </div>
-                  <button onClick={() => { setLoading(false); reset(); }} className='px-6 py-3 rounded-2xl bg-yellow-500 text-black font-bold hover:bg-yellow-400'>Cancel</button>
+
+                  <div className='flex items-center gap-4 mt-4'>
+                    <div className='w-10 h-10 rounded-full border-4 border-t-yellow-400 border-white/10 animate-spin' />
+                    <div className='text-gray-400'>Generating test questions... This may take a moment.</div>
+                  </div>
+                </div>
+
+                {/* Right: details & actions */}
+                <div className='w-60 flex flex-col gap-4'>
+                  <div className='bg-[#0f0f16] rounded-xl p-3 border border-white/5'>
+                    <div className='text-xs text-gray-400 mb-2'>Selected Types</div>
+                    <div className='flex flex-wrap gap-2'>
+                      {Array.from(selectedTypes).map(type => (
+                        <span key={type} className='px-3 py-1 rounded-full bg-[#1b1b27] text-gray-200 text-[12px]'>
+                          {type === 'mcq' ? 'MCQ' : type === 'true_false' ? 'True/False' : 'Fill In'}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className='bg-[#0f0f16] rounded-xl p-4 border border-white/5 flex items-center justify-center text-yellow-400 font-bold text-2xl'>
+                    {numQuestions}
+                  </div>
+
+                  <div className='mt-auto flex flex-col gap-2'>
+                    <button onClick={() => { setLoading(false); setScreen('home'); }} className='w-full px-4 py-2 rounded-lg bg-[#1f1f2e] text-gray-300 hover:bg-[#2a2a3d]'>Stop & Go Home</button>
+                    <button onClick={() => { setLoading(false); reset(); }} className='w-full px-4 py-2 rounded-lg bg-yellow-500 text-black font-bold hover:bg-yellow-400'>Cancel Generation</button>
+                  </div>
                 </div>
               </div>
             </div>

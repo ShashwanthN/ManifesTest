@@ -31,7 +31,7 @@ export function buildMultiTypePrompt(
   const typeInstructions: string[] = [];
   let questionCount = 0;
 
-  selectedTypes.forEach((type, index) => {
+  Array.from(selectedTypes).forEach((type, index) => {
     const qCount = questionsPerType + (index < remainder ? 1 : 0);
     questionCount += qCount;
     
@@ -103,7 +103,7 @@ export function generateFallbackQuestions(
   const remainder = count % typeCount;
   let typeIndex = 0;
 
-  selectedTypes.forEach((type, index) => {
+  Array.from(selectedTypes).forEach((type, index) => {
     const qCount = questionsPerType + (index < remainder ? 1 : 0);
     
     for (let i = 0; i < qCount; i++) {

@@ -1,6 +1,7 @@
-import { Home, History, Settings, FilePlus, Search } from 'lucide-react';
+import { Home, History, Settings, FilePlus, Search, Layers, HelpCircle } from 'lucide-react';
 import TestTypeButtons, { TestType } from '../components/TestTypeButtons';
 import VerticalSlider from '../components/VerticalSlider';
+import icon from '../../../assets/Icon.png';
 
 interface HomePageProps {
   selectedTypes: Set<TestType>;
@@ -42,7 +43,7 @@ export default function HomePage({
   return (
     <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
       {/* Header */}
-      <div className='flex justify-between items-center px-6 pt-6 pb-4'>
+      <div className='flex justify-between items-center px-4 pt-6 pb-4'>
         <div className='flex items-center gap-2'>
           <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
             <Home className='w-5 h-5 text-gray-400' />
@@ -58,158 +59,189 @@ export default function HomePage({
           >
             <History className='w-5 h-5 text-gray-400' />
           </button>
-          <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
+          {/* <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
             <Settings className='w-5 h-5 text-gray-400' />
-          </button>
+          </button> */}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col px-6 py-3 overflow-y-auto">
-        <div className="w-full mx-auto space-y-4">
+      <div className="flex-1 flex flex-col px-6 py-1 overflow-y-auto">
+        <div className="flex flex-col items-center justify-center mx-auto space-y-4 w-full">
           {/* Welcome Section */}
-          <div className="text-center space-y-1">
-            <h1 className="text-xl text-white font-bold">
-              Create Your Test
+          <div className="text-start space-y-1 pl- pb-4">
+            <h1 className="text-2xl text-white font-light font-stretch-expanded font-serif">
+              Create a Test
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-start justify-self-auto text-neutral-400">
               {error || 'Select options below and generate questions from the current page'}
             </p>
           </div>
 
-          {/* Test Configuration Card */}
-          <div className='bg-[#202020] flex justify-around border border-[#3d3d3d] rounded-2xl pt-4 px-4 space-y-4'>
-            {/* Test Types Section */}
-            <div className='space-y-2'>
-              <TestTypeButtons 
-                selectedTypes={selectedTypes} 
-                onToggleType={onToggleTestType}
-              />
+          {/* Test Configuration Card (compact, silver accents) */}
+          <div className='bg-linear-to-br from-[#17171700] via-[#25252500] to-[#1f1f1f00] flex items-center justify-between w-full max-w-2xl border border-[#2f2f33] rounded-2xl py-4 px-5 gap-6 shadow-md relative overflow-hidden' >
+            {/* Subtle silver accents */}
+            <div className='absolute left-0 top-0 h-full w-1 bg-linear-to-b from-transparent via-[#ffffff10] to-transparent opacity-30 pointer-events-none rounded-l-2xl' />
+            <div className='absolute right-0 bottom-0 h-full w-1 bg-linear-to-b from-transparent via-[#ffffff08] to-transparent opacity-25 pointer-events-none rounded-r-2xl' />
+
+            {/* Test Types Section (icon on left) */}
+            <div className='flex items- gap-4 z-10 min-w-0'>
+              <div className='flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 shrink-0'>
+                <Layers className='w-5 h-5 text-slate-300' />
+              </div>
+              <div className='min-w-0'>
+                <div className='mb-1'>
+                  <TestTypeButtons 
+                    selectedTypes={selectedTypes} 
+                    onToggleType={onToggleTestType}
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Divider */}
-            <div className='h-px bg-[#3d3d3d]' />
+            {/* Divider (short) */}
+            <div className='h-20 pb-0 w-px bg-linear-to-b from-[#3a3a3a] via-[#2f2f2f] to-[#3a3a3a] opacity-60' />
 
-            {/* Number of Questions Section */}
-            <div className='space-y-2'>
-              <div className='flex items-center gap-3'>
-                <VerticalSlider
-                  min={3}
-                  max={20}
-                  value={numQuestions}
-                  onChange={onNumQuestionsChange}
-                />
+            {/* Number of Questions Section (icon on left) */}
+            <div className='flex items- gap-4 z-10 min-w-0'>
+              <div className='flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 shrink-0'>
+                <HelpCircle className='w-5 h-5 text-slate-300' />
+              </div>
+              <div className='min-w-0'>
+                <div className='flex items-center'>
+                  <VerticalSlider
+                    min={3}
+                    max={20}
+                    value={numQuestions}
+                    onChange={onNumQuestionsChange}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Generate Button */}
-          <button
+          <div className='w-full max-w-2xl'>
+            <button
             disabled={loading || selectedTypes.size === 0}
             onClick={onGenerateMCQs}
-            className='w-full px-6 py-3 rounded-full bg-yellow-500 text-black font-bold hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center text-base shadow-lg'
+            className='w-full px-6 py-3 rounded-full bg-yellow-500 font-serif text-black font-light hover:border-yellow-500 hover:border hover:bg-yellow-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center text-base shadow-lg'
           >
             {loading ? (
               <>
-                <div className='w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2' />
+                <div className='w-4 h-4 border-2 border-black  border-t-transparent rounded-full animate-spin mr-2' />
                 Generating...
               </>
             ) : (
               <>
-                <FilePlus className='w-4 h-4 mr-2' />
+               
                 Generate Test
               </>
             )}
-          </button>
+            </button>
           
-          {loading && (
-            <button
+            {loading && (
+              <button
               onClick={onReset}
               className='w-full px-6 py-2.5 rounded-full bg-red-500 text-white font-bold hover:bg-red-400 transition-colors text-sm'
             >
               Cancel Generation
             </button>
-          )}
+            )}
+          </div>
 
-          {/* Input Prompt Section */}
-          <div className='space-y-1.5'>
-            <p className="text-xs text-gray-400 font-medium">Ask LLM or generate test</p>
-            <div className='rounded-xl px-3 py-2 bg-[#202020] border border-[#3d3d3d] flex items-center gap-2'>
-              <input
-                type="text"
-                value={inputPrompt}
-                onChange={(e) => onInputPromptChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !loading && !llmLoading && inputPrompt.trim()) {
+          {/* Input prompt moved to footer */}
+        </div>
+      </div>
+
+      {/* Footer: Input Prompt Section moved here for better layout */}
+      <div className='px-4 pb-6 pt-6 border-t border-[#2b2b2b]'>
+        <div className='space-y-1.5'>
+          
+          
+          <div className='flex items-center gap-3'>
+            {/* App icon placed outside the input bar */}
+          
+            <div className='flex-1'>
+              <div className='rounded-xl px-3 py-2 bg-[#202020] border border-[#3d3d3d] flex items-center gap-2'>
+                <input
+                  type="text"
+                  value={inputPrompt}
+                  onChange={(e) => onInputPromptChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !loading && !llmLoading && inputPrompt.trim()) {
+                      if (isTestGenerationRequest(inputPrompt)) {
+                        onGenerateMCQs();
+                      } else {
+                        onLLMQuestion();
+                      }
+                    }
+                  }}
+                  placeholder='Ask a question or type a test topic...'
+                  className='bg-transparent flex-1 outline-none text-neutral-300 placeholder-neutral-500 text-xs'
+                  disabled={loading || llmLoading}
+                />
+                <button
+                  className='w-7 h-7 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors disabled:opacity-50 shrink-0'
+                  onClick={() => {
+                    if (!inputPrompt.trim() || loading || llmLoading) return;
                     if (isTestGenerationRequest(inputPrompt)) {
                       onGenerateMCQs();
                     } else {
                       onLLMQuestion();
                     }
-                  }
-                }}
-                placeholder='Ask a question or type a test topic...'
-                className='bg-transparent flex-1 outline-none text-neutral-300 placeholder-neutral-500 text-xs'
-                disabled={loading || llmLoading}
-              />
-              <button
-                className='w-7 h-7 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors disabled:opacity-50 shrink-0'
-                onClick={() => {
-                  if (!inputPrompt.trim() || loading || llmLoading) return;
-                  if (isTestGenerationRequest(inputPrompt)) {
-                    onGenerateMCQs();
-                  } else {
-                    onLLMQuestion();
-                  }
-                }}
-                disabled={loading || llmLoading || !inputPrompt.trim()}
-              >
-                {llmLoading ? (
-                  <div className='flex gap-0.5'>
-                    <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '0ms' }} />
-                    <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '150ms' }} />
-                    <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '300ms' }} />
-                  </div>
-                ) : (
-                  <Search className='w-3.5 h-3.5 text-yellow-500' strokeWidth={2.5} />
-                )}
-              </button>
+                  }}
+                  disabled={loading || llmLoading || !inputPrompt.trim()}
+                >
+                  {llmLoading ? (
+                    <div className='flex gap-0.5'>
+                      <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '0ms' }} />
+                      <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '150ms' }} />
+                      <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '300ms' }} />
+                    </div>
+                  ) : (
+                      <div className='shrink-0  '>
+              <img src={icon} alt='App icon' className='w-11 h-11 p-3    border-neutral-800 object-cover' />
             </div>
-            
-            {/* LLM Loading State */}
-            {llmLoading && (
-              <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d]'>
-                <div className='flex items-center gap-3'>
-                  <div className='flex gap-1'>
-                    <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '0ms' }} />
-                    <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '150ms' }} />
-                    <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '300ms' }} />
-                  </div>
-                  <span className='text-xs text-gray-400'>Getting answer...</span>
-                </div>
+
+                  )}
+                </button>
               </div>
-            )}
-            
-            {/* LLM Response */}
-            {llmResponse && !llmLoading && (
-              <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d] max-h-48 overflow-y-auto'>
-                <div className='flex items-start gap-2 mb-2'>
-                  <div className='w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0 mt-0.5'>
-                    <Search className='w-3 h-3 text-yellow-500' />
-                  </div>
-                  <p className="text-xs text-gray-400 font-medium">Answer:</p>
-                </div>
-                <p className="text-sm text-gray-200 whitespace-pre-wrap ml-7 leading-relaxed">{llmResponse}</p>
-              </div>
-            )}
-            
-            {/* Error State */}
-            {error && !llmResponse && !llmLoading && error.length > 50 && (
-              <div className='rounded-xl p-3 bg-[#202020] border border-red-500/30 max-h-32 overflow-y-auto'>
-                <p className="text-xs text-red-400 whitespace-pre-wrap">{error}</p>
-              </div>
-            )}
+            </div>
           </div>
+
+          {/* LLM Loading State */}
+          {llmLoading && (
+            <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d]'>
+              <div className='flex items-center gap-3'>
+                <div className='flex gap-1'>
+                  <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '0ms' }} />
+                  <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '150ms' }} />
+                  <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '300ms' }} />
+                </div>
+                <span className='text-xs text-gray-400'>Getting answer...</span>
+              </div>
+            </div>
+          )}
+
+          {/* LLM Response */}
+          {llmResponse && !llmLoading && (
+            <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d] max-h-48 overflow-y-auto'>
+              <div className='flex items-start gap-2 mb-2'>
+                <div className='w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0 mt-0.5'>
+                  <Search className='w-3 h-3 text-yellow-500' />
+                </div>
+                <p className="text-xs text-gray-400 font-medium">Answer:</p>
+              </div>
+              <p className="text-sm text-gray-200 whitespace-pre-wrap ml-7 leading-relaxed">{llmResponse}</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !llmResponse && !llmLoading && error.length > 50 && (
+            <div className='rounded-xl p-3 bg-[#202020] border border-red-500/30 max-h-32 overflow-y-auto'>
+              <p className="text-xs text-red-400 whitespace-pre-wrap">{error}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

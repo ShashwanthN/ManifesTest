@@ -123,7 +123,9 @@ function App() {
       console.error('Failed to init defaults:', e);
     }
   }
-
+function handleDismissAnswer() {
+  setLlmResponse('');
+}
   
   async function runPrompt(prompt: string, params: any) {
     try {
@@ -718,24 +720,27 @@ function App() {
   if (screen === 'home') {
     return (
       <>
-        <HomePage
-          selectedTypes={selectedTypes}
-          numQuestions={numQuestions}
-          loading={loading}
-          error={error}
-          inputPrompt={inputPrompt}
-          llmResponse={llmResponse}
-          llmLoading={llmLoading}
-          showHistory={showHistory}
-          onToggleTestType={handleToggleTestType}
-          onNumQuestionsChange={setNumQuestions}
-          onGenerateMCQs={handleGenerateMCQs}
-          onLLMQuestion={handleLLMQuestion}
-          onInputPromptChange={setInputPrompt}
-          onShowHistoryToggle={() => setShowHistory(!showHistory)}
-          onReset={() => { setLoading(false); reset(); }}
-          isTestGenerationRequest={isTestGenerationRequest}
-        />
+       <HomePage
+  selectedTypes={selectedTypes}
+  numQuestions={numQuestions}
+  loading={loading}
+  error={error}
+  inputPrompt={inputPrompt}
+  llmResponse={llmResponse}
+  llmLoading={llmLoading}
+  showHistory={showHistory}
+  onToggleTestType={handleToggleTestType}
+  onNumQuestionsChange={setNumQuestions}
+  onGenerateMCQs={handleGenerateMCQs}
+  onLLMQuestion={handleLLMQuestion}
+  onInputPromptChange={setInputPrompt}
+  onShowHistoryToggle={() => setShowHistory(!showHistory)}
+  onReset={() => { setLoading(false); reset(); }}
+  isTestGenerationRequest={isTestGenerationRequest}
+
+  // NEW:
+  onDismissAnswer={handleDismissAnswer}
+/>
         <HistoryModal
           showHistory={showHistory}
           historyTab={historyTab}

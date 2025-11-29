@@ -1,4 +1,4 @@
-import { Home, History, Settings, FilePlus, Search, Layers, HelpCircle } from 'lucide-react';
+import { Home, History, Settings, FilePlus, Search, Layers, HelpCircle , X } from 'lucide-react';
 import TestTypeButtons, { TestType } from '../components/TestTypeButtons';
 import VerticalSlider from '../components/VerticalSlider';
 import icon from '../../../assets/Icon.png';
@@ -20,8 +20,10 @@ interface HomePageProps {
   onShowHistoryToggle: () => void;
   onReset: () => void;
   isTestGenerationRequest: (prompt: string) => boolean;
-}
 
+  // NEW: handler to dismiss the answer pane (clears the llm response in parent)
+  onDismissAnswer: () => void;
+}
 
 export default function HomePage({
   selectedTypes,
@@ -39,9 +41,9 @@ export default function HomePage({
   onInputPromptChange,
   onShowHistoryToggle,
   onReset,
-  isTestGenerationRequest
+  isTestGenerationRequest,
+  onDismissAnswer
 }: HomePageProps) {
-  
   return (
     <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
       {/* Header */}
@@ -61,9 +63,6 @@ export default function HomePage({
           >
             <History className='w-5 h-5 text-gray-400' />
           </button>
-          {/* <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
-            <Settings className='w-5 h-5 text-gray-400' />
-          </button> */}
         </div>
       </div>
 
@@ -79,13 +78,11 @@ export default function HomePage({
             </p>
           </div>
 
-          {/* Test Configuration Card (compact, silver accents) */}
+          {/* Test Configuration Card */}
           <div className='bg-linear-to-br from-[#17171700] via-[#25252500] to-[#1f1f1f00] flex items-center justify-between w-full max-w-2xl border border-[#2f2f33] rounded-2xl py-4 px-5 gap-6 shadow-md relative overflow-hidden' >
-            {/* Subtle silver accents */}
             <div className='absolute left-0 top-0 h-full w-1 bg-linear-to-b from-transparent via-[#ffffff10] to-transparent opacity-30 pointer-events-none rounded-l-2xl' />
             <div className='absolute right-0 bottom-0 h-full w-1 bg-linear-to-b from-transparent via-[#ffffff08] to-transparent opacity-25 pointer-events-none rounded-r-2xl' />
 
-            {/* Test Types Section (icon on left) */}
             <div className='flex items- gap-4 z-10 min-w-0'>
               <div className='flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 shrink-0'>
                 <Layers className='w-5 h-5 text-slate-300' />
@@ -100,10 +97,8 @@ export default function HomePage({
               </div>
             </div>
 
-            {/* Divider (short) */}
             <div className='h-20 pb-0 w-px bg-linear-to-b from-[#3a3a3a] via-[#2f2f2f] to-[#3a3a3a] opacity-60' />
 
-            {/* Number of Questions Section (icon on left) */}
             <div className='flex items- gap-4 z-10 min-w-0'>
               <div className='flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 shrink-0'>
                 <HelpCircle className='w-5 h-5 text-slate-300' />
@@ -124,45 +119,36 @@ export default function HomePage({
           {/* Generate Button */}
           <div className='w-full max-w-2xl'>
             <button
-            disabled={loading || selectedTypes.size === 0}
-            onClick={onGenerateMCQs}
-            className='w-full px-6 py-3 rounded-full bg-yellow-500 font-serif text-black font-light border border-yellow-500 hover:border-yellow-500 hover:border hover:bg-yellow-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center text-base'
-          >
-            {loading ? (
-              <>
-                <div className='w-4 h-4 border-2 border-black  border-t-transparent rounded-full animate-spin mr-2' />
-                Generating...
-              </>
-            ) : (
-              <>
-               
-                Generate Test
-              </>
-            )}
+              disabled={loading || selectedTypes.size === 0}
+              onClick={onGenerateMCQs}
+              className='w-full px-6 py-3 rounded-full bg-yellow-500 font-serif text-black font-light border border-yellow-500 hover:border-yellow-500 hover:border hover:bg-yellow-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center text-base'
+            >
+              {loading ? (
+                <>
+                  <div className='w-4 h-4 border-2 border-black  border-t-transparent rounded-full animate-spin mr-2' />
+                  Generating...
+                </>
+              ) : (
+                <>Generate Test</>
+              )}
             </button>
           
             {loading && (
               <button
-              onClick={onReset}
-              className='w-full px-6 py-2.5 rounded-full bg-red-500 text-white font-bold hover:bg-red-400 transition-colors text-sm'
-            >
-              Cancel Generation
-            </button>
+                onClick={onReset}
+                className='w-full px-6 py-2.5 rounded-full bg-red-500 text-white font-bold hover:bg-red-400 transition-colors text-sm mt-3'
+              >
+                Cancel Generation
+              </button>
             )}
           </div>
-
-          {/* Input prompt moved to footer */}
         </div>
       </div>
 
-      {/* Footer: Input Prompt Section moved here for better layout */}
+      {/* Footer: Input Prompt Section */}
       <div className='px-4 pb-6 pt-6 border-t border-[#2b2b2b]'>
         <div className='space-y-1.5'>
-          
-          
           <div className='flex items-center gap-3'>
-            {/* App icon placed outside the input bar */}
-          
             <div className='flex-1'>
               <div className='rounded-xl px-3 py-2 bg-[#202020] border border-[#3d3d3d] flex items-center gap-2'>
                 <input
@@ -172,7 +158,6 @@ export default function HomePage({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !loading && !llmLoading && inputPrompt.trim()) {
                       if (isTestGenerationRequest(inputPrompt)) {
-                        
                         onGenerateMCQs();
                       } else {
                         onLLMQuestion();
@@ -184,7 +169,7 @@ export default function HomePage({
                   disabled={loading || llmLoading}
                 />
                 <button
-                  className='w-7 h-7 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors disabled:opacity-50 shrink-0'
+                  className='w-8 h-8 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors disabled:opacity-50 shrink-0'
                   onClick={() => {
                     if (!inputPrompt.trim() || loading || llmLoading) return;
                     if (isTestGenerationRequest(inputPrompt)) {
@@ -202,35 +187,32 @@ export default function HomePage({
                       <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '300ms' }} />
                     </div>
                   ) : (
-                      <div className='shrink-0  '>
-              <img src={icon} alt='App icon' className='w-11 h-11 p-3    border-neutral-800 object-cover' />
-            </div>
-
+                    <div className='shrink-0'>
+                      <img src={icon} alt='App icon' className='w-6 h-6 p-1 border-neutral-800 object-cover' />
+                    </div>
                   )}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* LLM Loading State */}
-          {llmLoading && (
-            <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d]'>
-              <div className='flex items-center gap-3'>
-                <div className='flex gap-1'>
-                  <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '0ms' }} />
-                  <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '150ms' }} />
-                  <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '300ms' }} />
-                </div>
-                <span className='text-xs text-gray-400'>Getting answer...</span>
-              </div>
-            </div>
-          )}
+          {/* ===== Removed duplicate "LLM Loading State" block to avoid two identical dot indicators ===== */}
 
-          {/* LLM Response */}
+          {/* LLM Response (with dismiss button) */}
           {llmResponse && !llmLoading && (
-            <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d] max-h-48 overflow-y-auto'>
+            <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d] max-h-48 overflow-y-auto relative'>
+              {/* Dismiss button (closes the whole answer area) */}
+              <button
+                onClick={onDismissAnswer}
+                className='absolute right-3 top-3 w-7 h-7 flex items-center justify-center rounded-md hover:bg-white/6'
+                aria-label='Dismiss answer'
+              >
+                <X className='w-4 h-4 text-neutral-400' />
+              </button>
+
               <div className='flex items-start gap-2 mb-2'>
-                <div className='w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0 mt-0.5'>
+                <div className='w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0'>
+                  {/* aligned vertically with flex container */}
                   <Search className='w-3 h-3 text-yellow-500' />
                 </div>
                 <p className="text-xs text-gray-400 font-medium">Answer:</p>
@@ -250,4 +232,3 @@ export default function HomePage({
     </div>
   );
 }
-

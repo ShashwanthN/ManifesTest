@@ -1,14 +1,15 @@
 {
-  "name": "wxt-react-starter",
-  "description": "manifest.json description",
+  "name": "manifestest",
+  "description": "AI-powered test generator that creates quizzes from any webpage content",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
+    "build:prod": "wxt build --mode production",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "compile": "tsc --noEmit",

@@ -1,23 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Clock, Settings, Plus, Search, FilePlus, ArrowLeft, Maximize2, X, Home, History, Save, Archive, ArchiveRestore, Trash2, RotateCcw, Eye } from 'lucide-react';
-import TestTypeButtons, { TestType } from './components/TestTypeButtons';
-import VerticalSlider from './components/VerticalSlider';
+import { X } from 'lucide-react';
 import { buildMultiTypePrompt, generateFallbackQuestions, Question } from './utils/testGeneration';
-
-interface SavedTest {
-  id: string;
-  testData: any;
-  savedAt: number;
-  title: string;
-  timeLeft?: number;
-  currentQuestion?: number;
-  userAnswers?: any;
-  isCompleted?: boolean;
-  isArchived?: boolean;
-  completedAt?: number;
-  score?: number;
-  percentage?: number;
-}
+import { SavedTest } from './types';
+import { TestType } from './components/TestTypeButtons';
+import HomePage from './pages/HomePage';
+import PreviewPage from './pages/PreviewPage';
+import TestPage from './pages/TestPage';
+import ResultsPage from './pages/ResultsPage';
+import HistoryModal from './components/HistoryModal';
 
 function App() {
   const [screen, setScreen] = useState('home'); // 'home', 'preview', 'test', 'results', 'history'
@@ -684,352 +674,41 @@ function App() {
   // Home Screen
   if (screen === 'home') {
     return (
-      <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
-
-       
-        
-        {/* Header */}
-        <div className='flex justify-between items-center px-6 pt-6 pb-4'>
-          <div className='flex items-center gap-2'>
-            <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
-              <Home className='w-5 h-5 text-gray-400' />
-            </button>
-            <h1 className="text-[16px] text-neutral-200 font-medium">
-              Manifes<span className='font-bold italic text-yellow-400'>T</span><span className='text-yellow-400'>est</span>
-            </h1>
-          </div>
-          <div className='flex items-center gap-2'>
-            <button 
-              onClick={() => setShowHistory(!showHistory)}
-              className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'
-            >
-              <History className='w-5 h-5 text-gray-400' />
-            </button>
-            <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
-              <Settings className='w-5 h-5 text-gray-400' />
-            </button>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col px-6 py-3 overflow-y-auto">
-          <div className="w-full mx-auto space-y-4">
-            {/* Welcome Section */}
-            <div className="text-center space-y-1">
-              <h1 className="text-xl text-white font-bold">
-                Create Your Test
-              </h1>
-              <p className="text-xs text-gray-400">
-                {error || 'Select options below and generate questions from the current page'}
-              </p>
-            </div>
-
-            {/* Test Configuration Card */}
-            <div className='bg-[#202020] flex justify-around border border-[#3d3d3d] rounded-2xl pt-4 px-4 space-y-4'>
-              {/* Test Types Section */}
-              <div className='space-y-2'>
-                <TestTypeButtons 
-                  selectedTypes={selectedTypes} 
-                  onToggleType={handleToggleTestType}
-                />
-              </div>
-
-              {/* Divider */}
-              <div className='h-px bg-[#3d3d3d]' />
-
-              {/* Number of Questions Section */}
-              <div className='space-y-2'>
-                <div className='flex items-center gap-3'>
-                  <VerticalSlider
-                    min={3}
-                    max={20}
-                    value={numQuestions}
-                    onChange={setNumQuestions}
-                  />
-                 
-                </div>
-              </div>
-            </div>
-
-            {/* Generate Button */}
-            <button
-              disabled={loading || selectedTypes.size === 0}
-              onClick={handleGenerateMCQs}
-              className='w-full px-6 py-3 rounded-full bg-yellow-500 text-black font-bold hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center text-base shadow-lg'
-            >
-              {loading ? (
-                <>
-                  <div className='w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2' />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <FilePlus className='w-4 h-4 mr-2' />
-                  Generate Test
-                </>
-              )}
-            </button>
-            
-            {loading && (
-              <button
-                onClick={() => { setLoading(false); reset(); }}
-                className='w-full px-6 py-2.5 rounded-full bg-red-500 text-white font-bold hover:bg-red-400 transition-colors text-sm'
-              >
-                Cancel Generation
-              </button>
-            )}
-
-            {/* Input Prompt Section */}
-            <div className='space-y-1.5'>
-              <p className="text-xs text-gray-400 font-medium">Ask LLM or generate test</p>
-              <div className='rounded-xl px-3 py-2 bg-[#202020] border border-[#3d3d3d] flex items-center gap-2'>
-                <input
-                  type="text"
-                  value={inputPrompt}
-                  onChange={(e) => setInputPrompt(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !loading && !llmLoading && inputPrompt.trim()) {
-                      if (isTestGenerationRequest(inputPrompt)) {
-                        handleGenerateMCQs();
-                      } else {
-                        handleLLMQuestion();
-                      }
-                    }
-                  }}
-                  placeholder='Ask a question or type a test topic...'
-                  className='bg-transparent flex-1 outline-none text-neutral-300 placeholder-neutral-500 text-xs'
-                  disabled={loading || llmLoading}
-                />
-                <button
-                  className='w-7 h-7 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors disabled:opacity-50 shrink-0'
-                  onClick={() => {
-                    if (!inputPrompt.trim() || loading || llmLoading) return;
-                    if (isTestGenerationRequest(inputPrompt)) {
-                      handleGenerateMCQs();
-                    } else {
-                      handleLLMQuestion();
-                    }
-                  }}
-                  disabled={loading || llmLoading || !inputPrompt.trim()}
-                >
-                  {llmLoading ? (
-                    <div className='flex gap-0.5'>
-                      <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '0ms' }} />
-                      <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '150ms' }} />
-                      <div className='w-1 h-1 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '300ms' }} />
-                    </div>
-                  ) : (
-                    <Search className='w-3.5 h-3.5 text-yellow-500' strokeWidth={2.5} />
-                  )}
-                </button>
-              </div>
-              
-              {/* LLM Loading State */}
-              {llmLoading && (
-                <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d]'>
-                  <div className='flex items-center gap-3'>
-                    <div className='flex gap-1'>
-                      <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '0ms' }} />
-                      <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '150ms' }} />
-                      <div className='w-2 h-2 bg-yellow-500 rounded-full animate-bounce' style={{ animationDelay: '300ms' }} />
-                    </div>
-                    <span className='text-xs text-gray-400'>Getting answer...</span>
-                  </div>
-                </div>
-              )}
-              
-              {/* LLM Response */}
-              {llmResponse && !llmLoading && (
-                <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d] max-h-48 overflow-y-auto'>
-                  <div className='flex items-start gap-2 mb-2'>
-                    <div className='w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0 mt-0.5'>
-                      <Search className='w-3 h-3 text-yellow-500' />
-                    </div>
-                    <p className="text-xs text-gray-400 font-medium">Answer:</p>
-                  </div>
-                  <p className="text-sm text-gray-200 whitespace-pre-wrap ml-7 leading-relaxed">{llmResponse}</p>
-                </div>
-              )}
-              
-              {/* Error State */}
-              {error && !llmResponse && !llmLoading && error.length > 50 && (
-                <div className='rounded-xl p-3 bg-[#202020] border border-red-500/30 max-h-32 overflow-y-auto'>
-                  <p className="text-xs text-red-400 whitespace-pre-wrap">{error}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* History Modal */}
-        {showHistory && (
-          <div className='fixed inset-0 flex items-center justify-center bg-black/80 z-[100]' onClick={() => setShowHistory(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-            <div className='bg-[#202020] border border-[#3d3d3d] rounded-2xl p-6 w-[90%] max-w-md overflow-hidden' onClick={(e) => e.stopPropagation()} style={{ maxHeight: '85vh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-              <div className='flex items-center justify-between mb-4 sticky top-0 bg-[#202020] z-10 pb-2'>
-                <h2 className='text-xl text-white font-bold'>Test History</h2>
-                <button 
-                  onClick={() => setShowHistory(false)}
-                  className='w-8 h-8 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors'
-                >
-                  <X className='w-5 h-5 text-gray-400' />
-                </button>
-              </div>
-              
-              {/* Tabs */}
-              <div className='flex gap-2 mb-4 border-b border-[#3d3d3d]'>
-                <button
-                  onClick={() => setHistoryTab('active')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    historyTab === 'active' 
-                      ? 'text-yellow-400 border-b-2 border-yellow-400' 
-                      : 'text-gray-400 hover:text-gray-300'
-                  }`}
-                >
-                  Active ({savedTests.filter(t => !t.isCompleted && !t.isArchived).length})
-                </button>
-                <button
-                  onClick={() => setHistoryTab('completed')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    historyTab === 'completed' 
-                      ? 'text-yellow-400 border-b-2 border-yellow-400' 
-                      : 'text-gray-400 hover:text-gray-300'
-                  }`}
-                >
-                  Completed ({savedTests.filter(t => t.isCompleted && !t.isArchived).length})
-                </button>
-                <button
-                  onClick={() => setHistoryTab('archived')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    historyTab === 'archived' 
-                      ? 'text-yellow-400 border-b-2 border-yellow-400' 
-                      : 'text-gray-400 hover:text-gray-300'
-                  }`}
-                >
-                  Archived ({savedTests.filter(t => t.isArchived).length})
-                </button>
-              </div>
-              
-              <div className='overflow-y-auto flex-1' style={{ maxHeight: 'calc(85vh - 180px)' }}>
-                {(() => {
-                  const filteredTests = savedTests.filter(t => {
-                    if (historyTab === 'active') return !t.isCompleted && !t.isArchived;
-                    if (historyTab === 'completed') return t.isCompleted && !t.isArchived;
-                    if (historyTab === 'archived') return t.isArchived;
-                    return false;
-                  });
-
-                  if (filteredTests.length === 0) {
-                    return (
-                      <div className='text-center py-8 text-gray-400'>
-                        <History className='w-12 h-12 mx-auto mb-3 opacity-50' />
-                        <p>
-                          {historyTab === 'active' && 'No active tests'}
-                          {historyTab === 'completed' && 'No completed tests'}
-                          {historyTab === 'archived' && 'No archived tests'}
-                        </p>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div className='space-y-3'>
-                      {filteredTests.map((test) => (
-                        <div 
-                          key={test.id} 
-                          className='bg-[#1A1A1A] border border-[#3d3d3d] rounded-xl p-4 hover:bg-[#252525] transition-colors'
-                        >
-                          <div className='flex items-start justify-between mb-2'>
-                            <div className='flex-1'>
-                              <h3 className='text-white font-medium mb-1'>{test.title}</h3>
-                              <p className='text-xs text-gray-400'>
-                                {test.isCompleted && test.completedAt 
-                                  ? `Completed: ${new Date(test.completedAt).toLocaleString()}`
-                                  : `Saved: ${new Date(test.savedAt).toLocaleString()}`
-                                }
-                              </p>
-                              {test.isCompleted && test.score !== undefined && (
-                                <p className='text-xs text-yellow-400 mt-1'>
-                                  Score: {test.score}/{test.testData?.questions?.length || 0} ({test.percentage?.toFixed(0) || 0}%)
-                                </p>
-                              )}
-                              {!test.isCompleted && test.currentQuestion !== undefined && (
-                                <p className='text-xs text-yellow-400 mt-1'>
-                                  Progress: {test.currentQuestion + 1}/{test.testData?.questions?.length || 0} questions
-                                </p>
-                              )}
-                            </div>
-                            <div className='flex gap-1'>
-                              {historyTab === 'archived' ? (
-                                <button
-                                  onClick={() => unarchiveTest(test.id)}
-                                  className='w-7 h-7 flex items-center justify-center hover:bg-blue-500/20 rounded transition-colors'
-                                  title='Unarchive'
-                                >
-                                  <ArchiveRestore className='w-4 h-4 text-blue-400' />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => archiveTest(test.id)}
-                                  className='w-7 h-7 flex items-center justify-center hover:bg-gray-500/20 rounded transition-colors'
-                                  title='Archive'
-                                >
-                                  <Archive className='w-4 h-4 text-gray-400' />
-                                </button>
-                              )}
-                              <button
-                                onClick={() => deleteSavedTest(test.id)}
-                                className='w-7 h-7 flex items-center justify-center hover:bg-red-500/20 rounded transition-colors'
-                                title='Delete'
-                              >
-                                <Trash2 className='w-4 h-4 text-red-400' />
-                              </button>
-                            </div>
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className='flex gap-2 mt-3'>
-                            {test.isCompleted ? (
-                              <>
-                                <button
-                                  onClick={() => handleReviewTest(test)}
-                                  className='flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm flex items-center justify-center gap-2'
-                                >
-                                  <Eye className='w-4 h-4' />
-                                  Review
-                                </button>
-                                <button
-                                  onClick={() => handleRetakeTest(test)}
-                                  className='flex-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-medium rounded-lg transition-colors text-sm flex items-center justify-center gap-2'
-                                >
-                                  <RotateCcw className='w-4 h-4' />
-                                  Retake
-                                </button>
-                              </>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  loadSavedTest(test);
-                                  setShowHistory(false);
-                                }}
-                                className='w-full px-4 py-2 bg-yellow-500 text-black font-medium rounded-lg hover:bg-yellow-400 transition-colors text-sm'
-                              >
-                                Continue Test
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
-        )}
-
+      <>
+        <HomePage
+          selectedTypes={selectedTypes}
+          numQuestions={numQuestions}
+          loading={loading}
+          error={error}
+          inputPrompt={inputPrompt}
+          llmResponse={llmResponse}
+          llmLoading={llmLoading}
+          showHistory={showHistory}
+          onToggleTestType={handleToggleTestType}
+          onNumQuestionsChange={setNumQuestions}
+          onGenerateMCQs={handleGenerateMCQs}
+          onLLMQuestion={handleLLMQuestion}
+          onInputPromptChange={setInputPrompt}
+          onShowHistoryToggle={() => setShowHistory(!showHistory)}
+          onReset={() => { setLoading(false); reset(); }}
+          isTestGenerationRequest={isTestGenerationRequest}
+        />
+        <HistoryModal
+          showHistory={showHistory}
+          historyTab={historyTab}
+          savedTests={savedTests}
+          onClose={() => setShowHistory(false)}
+          onTabChange={setHistoryTab}
+          onArchiveTest={archiveTest}
+          onUnarchiveTest={unarchiveTest}
+          onDeleteTest={deleteSavedTest}
+          onReviewTest={handleReviewTest}
+          onRetakeTest={handleRetakeTest}
+          onContinueTest={(test) => { loadSavedTest(test); setShowHistory(false); }}
+        />
         {/* Loading Overlay */}
         {loading && (
-          <div className='absolute inset-0 flex items-center justify-center bg-black/60 z-40'>
+          <div className='fixed inset-0 flex items-center justify-center bg-black/60 z-40'>
             <div className='w-[400px] h-[500px] rounded-3xl relative' style={{ boxShadow: '0 0 40px rgba(255, 224, 102, 0.25), inset 0 0 50px rgba(118, 70, 255, 0.15)' }}>
               <div className='absolute inset-0 rounded-3xl bg-linear-to-br from-[#0c0c14] via-[#151526] to-[#0c0c14] border border-[#2b2b46]' />
               <div className='relative z-10 flex items-center justify-between px-4 pt-3'>
@@ -1079,662 +758,72 @@ function App() {
             </div>
           </div>
         )}
-      </div>
+      </>
     );
   }
 
   // Preview Screen
   if (screen === 'preview' && testData) {
     return (
-      <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
-        {/* Header */}
-        <div className='flex justify-between items-center px-4 pt-3 pb-2'>
-          <div className='flex items-center gap-2'>
-            <button 
-              onClick={() => setScreen('home')}
-              className='w-9 h-9 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'
-            >
-              <Home className='w-4 h-4 text-gray-400' />
-            </button>
-            <button 
-              onClick={() => setShowHistory(!showHistory)}
-              className='w-9 h-9 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'
-            >
-              <History className='w-4 h-4 text-gray-400' />
-            </button>
-          </div>
-          <h1 className="text-xs text-gray-300 font-medium">
-            ManifesTest - {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          </h1>
-          <button className='w-9 h-9 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
-            <Settings className='w-4 h-4 text-gray-400' />
-          </button>
-        </div>
-
-        {/* Main Content */}
-        <div className='flex-1 flex flex-col px-4 py-2 overflow-y-auto'>
-          <div className='w-full mx-auto space-y-3 flex-1 flex flex-col'>
-            {/* Title Section */}
-            <div className='text-center space-y-1'>
-              <h1 className="text-2xl font-bold text-white">
-                {testData.source_title?.split('|')[0]?.trim() || 'Test'}
-              </h1>
-              <p className="text-gray-400 text-xs">
-                {testData.source_title?.split('|').slice(1).join('|').trim() || ''}
-              </p>
-            </div>
-
-            {/* Time and Marks */}
-            <div className='flex justify-between text-gray-300 text-sm'>
-              <span>Time: 10 min</span>
-              <span>Max. Marks: {testData.questions.length}</span>
-            </div>
-
-            {/* Instructions */}
-            <div className='text-gray-300 space-y-1'>
-              <p className='font-medium text-sm'>Instructions:</p>
-              <ol className='list-decimal list-inside space-y-0.5 text-xs ml-2'>
-                <li>All questions are compulsory.</li>
-                <li>You will have MCQs, Truth or False and Fill in the Blanks as part of the test.</li>
-                <li>Click the yellow button on the bottom right to fullscreen.</li>
-              </ol>
-            </div>
-
-            {/* Action Container */}
-            <div className='w-full rounded-2xl p-4 bg-[#202020] border border-[#3d3d3d] flex items-center justify-center mt-2'>
-              {/* Buttons */}
-              <div className='flex items-center gap-4'>
-                <button 
-                  onClick={saveTest}
-                  disabled={isSaving}
-                  className='px-6 py-2 bg-white hover:bg-gray-100 text-black font-medium rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm'
-                >
-                  <Save className='w-3.5 h-3.5' />
-                  {isSaving ? 'Saving...' : 'Save'}
-                </button>
-                <button 
-                  onClick={handleStartTest}
-                  className='px-6 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition-colors text-sm'
-                >
-                  Start Test
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer - Timer and Fullscreen Button */}
-        <div className='flex justify-between items-center px-4 py-2 border-t border-gray-800'>
-          {/* Timer at bottom left */}
-          <div className='text-3xl font-bold text-white'>
-            10:00
-          </div>
-          
-          {/* Fullscreen button at bottom right */}
-          <button 
-            onClick={() => {
-              if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-              }
-            }}
-            className='w-12 h-12 bg-yellow-500 hover:bg-yellow-400 rounded-xl flex items-center justify-center transition-colors'
-          >
-            <Maximize2 className='w-5 h-5 text-black' />
-          </button>
-        </div>
-
-        {/* History Modal */}
-        {showHistory && (
-          <div className='fixed inset-0 flex items-center justify-center bg-black/80 z-[100]' onClick={() => setShowHistory(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-            <div className='bg-[#202020] border border-[#3d3d3d] rounded-2xl p-6 w-[90%] max-w-md overflow-hidden' onClick={(e) => e.stopPropagation()} style={{ maxHeight: '85vh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-              <div className='flex items-center justify-between mb-4 sticky top-0 bg-[#202020] z-10 pb-2'>
-                <h2 className='text-xl text-white font-bold'>Test History</h2>
-                <button 
-                  onClick={() => setShowHistory(false)}
-                  className='w-8 h-8 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors'
-                >
-                  <X className='w-5 h-5 text-gray-400' />
-                </button>
-              </div>
-              
-              {/* Tabs */}
-              <div className='flex gap-2 mb-4 border-b border-[#3d3d3d]'>
-                <button
-                  onClick={() => setHistoryTab('active')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    historyTab === 'active' 
-                      ? 'text-yellow-400 border-b-2 border-yellow-400' 
-                      : 'text-gray-400 hover:text-gray-300'
-                  }`}
-                >
-                  Active ({savedTests.filter(t => !t.isCompleted && !t.isArchived).length})
-                </button>
-                <button
-                  onClick={() => setHistoryTab('completed')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    historyTab === 'completed' 
-                      ? 'text-yellow-400 border-b-2 border-yellow-400' 
-                      : 'text-gray-400 hover:text-gray-300'
-                  }`}
-                >
-                  Completed ({savedTests.filter(t => t.isCompleted && !t.isArchived).length})
-                </button>
-                <button
-                  onClick={() => setHistoryTab('archived')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    historyTab === 'archived' 
-                      ? 'text-yellow-400 border-b-2 border-yellow-400' 
-                      : 'text-gray-400 hover:text-gray-300'
-                  }`}
-                >
-                  Archived ({savedTests.filter(t => t.isArchived).length})
-                </button>
-              </div>
-              
-              <div className='overflow-y-auto flex-1' style={{ maxHeight: 'calc(85vh - 180px)' }}>
-                {(() => {
-                  const filteredTests = savedTests.filter(t => {
-                    if (historyTab === 'active') return !t.isCompleted && !t.isArchived;
-                    if (historyTab === 'completed') return t.isCompleted && !t.isArchived;
-                    if (historyTab === 'archived') return t.isArchived;
-                    return false;
-                  });
-
-                  if (filteredTests.length === 0) {
-                    return (
-                      <div className='text-center py-8 text-gray-400'>
-                        <History className='w-12 h-12 mx-auto mb-3 opacity-50' />
-                        <p>
-                          {historyTab === 'active' && 'No active tests'}
-                          {historyTab === 'completed' && 'No completed tests'}
-                          {historyTab === 'archived' && 'No archived tests'}
-                        </p>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div className='space-y-3'>
-                      {filteredTests.map((test) => (
-                        <div 
-                          key={test.id} 
-                          className='bg-[#1A1A1A] border border-[#3d3d3d] rounded-xl p-4 hover:bg-[#252525] transition-colors'
-                        >
-                          <div className='flex items-start justify-between mb-2'>
-                            <div className='flex-1'>
-                              <h3 className='text-white font-medium mb-1'>{test.title}</h3>
-                              <p className='text-xs text-gray-400'>
-                                {test.isCompleted && test.completedAt 
-                                  ? `Completed: ${new Date(test.completedAt).toLocaleString()}`
-                                  : `Saved: ${new Date(test.savedAt).toLocaleString()}`
-                                }
-                              </p>
-                              {test.isCompleted && test.score !== undefined && (
-                                <p className='text-xs text-yellow-400 mt-1'>
-                                  Score: {test.score}/{test.testData?.questions?.length || 0} ({test.percentage?.toFixed(0) || 0}%)
-                                </p>
-                              )}
-                              {!test.isCompleted && test.currentQuestion !== undefined && (
-                                <p className='text-xs text-yellow-400 mt-1'>
-                                  Progress: {test.currentQuestion + 1}/{test.testData?.questions?.length || 0} questions
-                                </p>
-                              )}
-                            </div>
-                            <div className='flex gap-1'>
-                              {historyTab === 'archived' ? (
-                                <button
-                                  onClick={() => unarchiveTest(test.id)}
-                                  className='w-7 h-7 flex items-center justify-center hover:bg-blue-500/20 rounded transition-colors'
-                                  title='Unarchive'
-                                >
-                                  <ArchiveRestore className='w-4 h-4 text-blue-400' />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => archiveTest(test.id)}
-                                  className='w-7 h-7 flex items-center justify-center hover:bg-gray-500/20 rounded transition-colors'
-                                  title='Archive'
-                                >
-                                  <Archive className='w-4 h-4 text-gray-400' />
-                                </button>
-                              )}
-                              <button
-                                onClick={() => deleteSavedTest(test.id)}
-                                className='w-7 h-7 flex items-center justify-center hover:bg-red-500/20 rounded transition-colors'
-                                title='Delete'
-                              >
-                                <Trash2 className='w-4 h-4 text-red-400' />
-                              </button>
-                            </div>
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className='flex gap-2 mt-3'>
-                            {test.isCompleted ? (
-                              <>
-                                <button
-                                  onClick={() => handleReviewTest(test)}
-                                  className='flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm flex items-center justify-center gap-2'
-                                >
-                                  <Eye className='w-4 h-4' />
-                                  Review
-                                </button>
-                                <button
-                                  onClick={() => handleRetakeTest(test)}
-                                  className='flex-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-medium rounded-lg transition-colors text-sm flex items-center justify-center gap-2'
-                                >
-                                  <RotateCcw className='w-4 h-4' />
-                                  Retake
-                                </button>
-                              </>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  loadSavedTest(test);
-                                  setShowHistory(false);
-                                }}
-                                className='w-full px-4 py-2 bg-yellow-500 text-black font-medium rounded-lg hover:bg-yellow-400 transition-colors text-sm'
-                              >
-                                Continue Test
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      <>
+        <PreviewPage
+          testData={testData}
+          isSaving={isSaving}
+          showHistory={showHistory}
+          onGoHome={() => setScreen('home')}
+          onShowHistoryToggle={() => setShowHistory(!showHistory)}
+          onSaveTest={saveTest}
+          onStartTest={handleStartTest}
+        />
+        <HistoryModal
+          showHistory={showHistory}
+          historyTab={historyTab}
+          savedTests={savedTests}
+          onClose={() => setShowHistory(false)}
+          onTabChange={setHistoryTab}
+          onArchiveTest={archiveTest}
+          onUnarchiveTest={unarchiveTest}
+          onDeleteTest={deleteSavedTest}
+          onReviewTest={handleReviewTest}
+          onRetakeTest={handleRetakeTest}
+          onContinueTest={(test) => { loadSavedTest(test); setShowHistory(false); }}
+        />
+      </>
     );
   }
 
   // Test Screen
   if (screen === 'test' && testData) {
-    const question: Question = testData.questions[currentQuestion];
-    const progress = ((currentQuestion + 1) / testData.questions.length) * 100;
-    const answeredQuestions = Object.keys(userAnswers).length;
-
     return (
-      <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
-        {/* Header */}
-        <div className='border-b border-gray-800'>
-          {/* Top Row - Main Info */}
-          <div className='flex items-center justify-between px-4 py-2'>
-            <button
-              onClick={() => setScreen('home')}
-              className='w-8 h-8 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors shrink-0'
-            >
-              <Home className='w-4 h-4 text-gray-400' />
-            </button>
-            <div className='flex-1 flex flex-col items-center gap-1 mx-3 min-w-0'>
-              <div className='text-sm text-gray-300 font-medium whitespace-nowrap'>
-                Question {currentQuestion + 1} of {testData.questions.length}
-              </div>
-              <div className='w-full max-w-[200px] h-1 bg-gray-800 rounded-full overflow-hidden'>
-                <div 
-                  className='h-full bg-yellow-500 transition-all duration-300'
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-            <div className='text-yellow-500 font-bold text-lg whitespace-nowrap shrink-0'>{formatTime(timeLeft)}</div>
-          </div>
-          
-          {/* Bottom Row - Secondary Info */}
-          <div className='flex items-center justify-between px-4 py-1.5 border-t border-gray-800/50'>
-            <div className='text-xs text-gray-500'>
-              {answeredQuestions} of {testData.questions.length} answered
-            </div>
-            <button
-              onClick={saveTest}
-              disabled={isSaving}
-              className='px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors flex items-center gap-1 disabled:opacity-50 shrink-0'
-            >
-              <Save className='w-3 h-3' />
-              {isSaving ? 'Saving...' : 'Save'}
-            </button>
-          </div>
-        </div>
-
-        {/* Question Content */}
-        <div className='flex-1 flex flex-col px-6 py-4 overflow-y-auto'>
-          <div className='w-full max-w-2xl mx-auto space-y-6'>
-            <div className='flex items-start gap-3'>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                userAnswers[currentQuestion] !== undefined 
-                  ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50' 
-                  : 'bg-gray-700 text-gray-400 border-2 border-gray-600'
-              }`}>
-                {currentQuestion + 1}
-              </div>
-              <h2 className='text-lg text-white font-medium leading-relaxed flex-1 pt-1.5'>
-                {question.question}
-              </h2>
-            </div>
-
-            {/* MCQ Question */}
-            {question.type === 'mcq' && question.options && (
-              <div className='space-y-2.5'>
-                {question.options.map((option: string, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleAnswerSelect(currentQuestion, idx)}
-                    className={`w-full p-3.5 rounded-xl text-left transition-all ${
-                      userAnswers[currentQuestion] === idx
-                        ? 'bg-yellow-500 text-black font-medium'
-                        : 'bg-[#202020] text-gray-300 hover:bg-[#2A2A2A] border border-transparent hover:border-gray-600'
-                    }`}
-                  >
-                    <span className='font-bold mr-3 text-base'>{String.fromCharCode(65 + idx)}.</span>
-                    <span className='text-sm'>{option}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* True/False Question */}
-            {question.type === 'true_false' && (
-              <div className='space-y-2.5'>
-                <button
-                  onClick={() => handleAnswerSelect(currentQuestion, true)}
-                  className={`w-full p-3.5 rounded-xl text-left transition-all ${
-                    userAnswers[currentQuestion] === true
-                      ? 'bg-yellow-500 text-black font-medium'
-                      : 'bg-[#202020] text-gray-300 hover:bg-[#2A2A2A] border border-transparent hover:border-gray-600'
-                  }`}
-                >
-                  <span className='text-base font-medium'>True</span>
-                </button>
-                <button
-                  onClick={() => handleAnswerSelect(currentQuestion, false)}
-                  className={`w-full p-3.5 rounded-xl text-left transition-all ${
-                    userAnswers[currentQuestion] === false
-                      ? 'bg-yellow-500 text-black font-medium'
-                      : 'bg-[#202020] text-gray-300 hover:bg-[#2A2A2A] border border-transparent hover:border-gray-600'
-                  }`}
-                >
-                  <span className='text-base font-medium'>False</span>
-                </button>
-              </div>
-            )}
-
-            {/* Fill In Question */}
-            {question.type === 'fill_in' && (
-              <div className='space-y-2.5'>
-                <input
-                  type="text"
-                  value={userAnswers[currentQuestion] || ''}
-                  onChange={(e) => handleAnswerSelect(currentQuestion, e.target.value)}
-                  placeholder='Type your answer...'
-                  className='w-full p-3.5 rounded-xl bg-[#202020] text-white placeholder-gray-500 border border-gray-700 focus:border-yellow-500 focus:outline-none text-sm'
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Navigation Footer */}
-        <div className='flex flex-col gap-3 px-6 py-3 border-t border-gray-800 bg-[#1A1A1A]'>
-          <div className='flex justify-between items-center'>
-            <button
-              onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
-              disabled={currentQuestion === 0}
-              className='px-5 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors flex items-center gap-2 text-sm'
-            >
-              <ArrowLeft className='w-4 h-4' />
-              Previous
-            </button>
-            
-            <button
-              onClick={() => {
-                if (currentQuestion === testData.questions.length - 1) {
-                  handleSubmitTest();
-                } else {
-                  setCurrentQuestion(prev => Math.min(testData.questions.length - 1, prev + 1));
-                }
-              }}
-              className='px-5 py-2 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition-colors flex items-center gap-2 text-sm'
-            >
-              {currentQuestion === testData.questions.length - 1 ? 'Submit Test' : 'Next Question'}
-              {currentQuestion !== testData.questions.length - 1 && (
-                <ArrowLeft className='w-4 h-4 rotate-180' />
-              )}
-            </button>
-          </div>
-          
-          <div className='flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent'>
-            {testData.questions.map((_: any, idx: number) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentQuestion(idx)}
-                className={`shrink-0 w-7 h-7 rounded-lg text-xs font-medium transition-colors ${
-                  idx === currentQuestion
-                    ? 'bg-yellow-500 text-black'
-                    : userAnswers[idx] !== undefined
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                }`}
-              >
-                {idx + 1}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <TestPage
+        testData={testData}
+        currentQuestion={currentQuestion}
+        userAnswers={userAnswers}
+        timeLeft={timeLeft}
+        isSaving={isSaving}
+        formatTime={formatTime}
+        onGoHome={() => setScreen('home')}
+        onSaveTest={saveTest}
+        onAnswerSelect={handleAnswerSelect}
+        onPreviousQuestion={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+        onNextQuestion={() => setCurrentQuestion(prev => Math.min(testData.questions.length - 1, prev + 1))}
+        onGoToQuestion={(idx) => setCurrentQuestion(idx)}
+        onSubmitTest={handleSubmitTest}
+      />
     );
   }
 
   // Results Screen
   if (screen === 'results' && testData) {
-    const score = calculateScore();
-    const total = testData.questions.length;
-    const percentage = (score / total) * 100;
-    const incorrect = total - score;
-    
-    // Calculate correct/incorrect counts
-    const correctQuestions: number[] = [];
-    const incorrectQuestions: Array<{index: number; question: Question; userAnswer: any; correctAnswer: any}> = [];
-    
-    testData.questions.forEach((q: Question, idx: number) => {
-      let isCorrect = false;
-      if (q.type === 'mcq' && userAnswers[idx] === q.answer_index) {
-        isCorrect = true;
-      } else if (q.type === 'true_false' && userAnswers[idx] === q.answer) {
-        isCorrect = true;
-      } else if (q.type === 'fill_in' && userAnswers[idx]?.toLowerCase().trim() === (q.answer as string)?.toLowerCase().trim()) {
-        isCorrect = true;
-      }
-      
-      if (isCorrect) {
-        correctQuestions.push(idx);
-      } else {
-        incorrectQuestions.push({
-          index: idx,
-          question: q,
-          userAnswer: userAnswers[idx],
-          correctAnswer: q.type === 'mcq' ? q.options?.[q.answer_index || 0] : q.answer
-        });
-      }
-    });
-
-    // Determine performance message and color
-    let performanceColor = 'text-yellow-500';
-    let performanceMessage = 'Good job!';
-    if (percentage >= 90) {
-      performanceColor = 'text-green-500';
-      performanceMessage = 'Excellent!';
-    } else if (percentage >= 70) {
-      performanceColor = 'text-yellow-500';
-      performanceMessage = 'Well done!';
-    } else if (percentage >= 50) {
-      performanceColor = 'text-orange-500';
-      performanceMessage = 'Keep practicing!';
-    } else {
-      performanceColor = 'text-red-500';
-      performanceMessage = 'Try again!';
-    }
-
     return (
-      <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative overflow-y-auto" style={{ height: '100vh' }}>
-        {/* Header */}
-        <div className='flex justify-between items-center px-6 pt-6 pb-4 border-b border-gray-800'>
-          <button
-            onClick={() => setScreen('home')}
-            className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'
-          >
-            <Home className='w-5 h-5 text-gray-400' />
-          </button>
-          <h1 className="text-lg text-white font-bold">
-            Test Results
-          </h1>
-          <div className='w-10' />
-        </div>
-
-        {/* Main Content */}
-        <div className='flex-1 overflow-y-auto px-6 py-6'>
-          <div className='w-full max-w-3xl mx-auto space-y-6'>
-            {/* Score Card */}
-            <div className='bg-gradient-to-br from-[#202020] to-[#1a1a1a] border border-[#3d3d3d] rounded-3xl p-8 text-center space-y-4'>
-              <h2 className='text-2xl font-bold text-white mb-4'>Test Completed!</h2>
-              
-              {/* Large Score Display */}
-              <div className='flex items-center justify-center gap-4 mb-4'>
-                <div className={`text-7xl font-bold ${performanceColor}`}>
-                  {score}
-                </div>
-                <div className='text-4xl text-gray-500'>/</div>
-                <div className='text-7xl font-bold text-gray-400'>
-                  {total}
-                </div>
-              </div>
-              
-              {/* Percentage Circle */}
-              <div className='flex justify-center mb-4'>
-                <div className='relative w-32 h-32'>
-                  <svg className='transform -rotate-90 w-32 h-32'>
-                    <circle
-                      cx='64'
-                      cy='64'
-                      r='56'
-                      stroke='#3d3d3d'
-                      strokeWidth='8'
-                      fill='transparent'
-                    />
-                    <circle
-                      cx='64'
-                      cy='64'
-                      r='56'
-                      stroke={percentage >= 90 ? '#10b981' : percentage >= 70 ? '#eab308' : percentage >= 50 ? '#f97316' : '#ef4444'}
-                      strokeWidth='8'
-                      fill='transparent'
-                      strokeDasharray={`${2 * Math.PI * 56}`}
-                      strokeDashoffset={`${2 * Math.PI * 56 * (1 - percentage / 100)}`}
-                      strokeLinecap='round'
-                      className='transition-all duration-1000'
-                    />
-                  </svg>
-                  <div className='absolute inset-0 flex items-center justify-center'>
-                    <span className={`text-2xl font-bold ${performanceColor}`}>
-                      {percentage.toFixed(0)}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <p className={`text-xl font-semibold ${performanceColor}`}>
-                {performanceMessage}
-              </p>
-            </div>
-
-            {/* Stats Grid */}
-            <div className='grid grid-cols-2 gap-4'>
-              <div className='bg-[#202020] border border-green-500/30 rounded-2xl p-4 text-center'>
-                <div className='text-3xl font-bold text-green-400 mb-1'>{score}</div>
-                <div className='text-sm text-gray-400'>Correct Answers</div>
-              </div>
-              <div className='bg-[#202020] border border-red-500/30 rounded-2xl p-4 text-center'>
-                <div className='text-3xl font-bold text-red-400 mb-1'>{incorrect}</div>
-                <div className='text-sm text-gray-400'>Incorrect Answers</div>
-              </div>
-            </div>
-
-            {/* Question Review Section */}
-            {incorrectQuestions.length > 0 && (
-              <div className='bg-[#202020] border border-[#3d3d3d] rounded-2xl p-6 space-y-4'>
-                <h3 className='text-xl font-bold text-white mb-4'>Review Incorrect Answers</h3>
-                <div className='space-y-4'>
-                  {incorrectQuestions.map((item) => {
-                    const q = item.question;
-                    return (
-                      <div key={item.index} className='bg-[#1A1A1A] border border-red-500/20 rounded-xl p-4 space-y-3'>
-                        <div className='flex items-start gap-3'>
-                          <div className='w-8 h-8 rounded-full bg-red-500/20 text-red-400 border border-red-500/50 flex items-center justify-center text-sm font-bold shrink-0'>
-                            {item.index + 1}
-                          </div>
-                          <div className='flex-1 space-y-2'>
-                            <p className='text-white font-medium'>{q.question}</p>
-                            <div className='space-y-1.5'>
-                              <div className='text-xs text-red-400'>
-                                Your answer: {q.type === 'mcq' ? q.options?.[item.userAnswer] || 'No answer' : String(item.userAnswer)}
-                              </div>
-                              <div className='text-xs text-green-400'>
-                                Correct answer: {q.type === 'mcq' ? q.options?.[q.answer_index || 0] : String(item.correctAnswer)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* All Questions Overview */}
-            <div className='bg-[#202020] border border-[#3d3d3d] rounded-2xl p-6'>
-              <h3 className='text-lg font-bold text-white mb-4'>Question Overview</h3>
-              <div className='grid grid-cols-5 gap-2'>
-                {testData.questions.map((q: Question, idx: number) => {
-                  const isCorrect = correctQuestions.includes(idx);
-                  return (
-                    <div
-                      key={idx}
-                      className={`aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
-                        isCorrect
-                          ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50'
-                          : 'bg-red-500/20 text-red-400 border-2 border-red-500/50'
-                      }`}
-                      title={`Question ${idx + 1}: ${isCorrect ? 'Correct' : 'Incorrect'}`}
-                    >
-                      {idx + 1}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className='flex gap-4'>
-              <button
-                onClick={() => setScreen('test')}
-                className='flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors'
-              >
-                Review Test
-              </button>
-              <button
-                onClick={handleReset}
-                className='flex-1 px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition-colors'
-              >
-                Create New Test
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ResultsPage
+        testData={testData}
+        userAnswers={userAnswers}
+        calculateScore={calculateScore}
+        onGoHome={() => setScreen('home')}
+        onReviewTest={() => setScreen('test')}
+        onCreateNewTest={handleReset}
+      />
     );
   }
 

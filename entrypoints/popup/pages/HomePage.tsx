@@ -22,6 +22,7 @@ interface HomePageProps {
   isTestGenerationRequest: (prompt: string) => boolean;
 }
 
+
 export default function HomePage({
   selectedTypes,
   numQuestions,
@@ -40,6 +41,7 @@ export default function HomePage({
   onReset,
   isTestGenerationRequest
 }: HomePageProps) {
+  
   return (
     <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
       {/* Header */}
@@ -68,7 +70,7 @@ export default function HomePage({
       <div className="flex-1 flex flex-col px-6 py-1 overflow-y-auto">
         <div className="flex flex-col items-center justify-center mx-auto space-y-4 w-full">
           {/* Welcome Section */}
-          <div className="text-start space-y-1 pl- pb-4">
+          <div className="text-start space-y-1 pl- pb-3">
             <h1 className="text-2xl text-white font-light font-stretch-expanded font-serif">
               Create a Test
             </h1>
@@ -124,7 +126,7 @@ export default function HomePage({
             <button
             disabled={loading || selectedTypes.size === 0}
             onClick={onGenerateMCQs}
-            className='w-full px-6 py-3 rounded-full bg-yellow-500 font-serif text-black font-light hover:border-yellow-500 hover:border hover:bg-yellow-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center text-base shadow-lg'
+            className='w-full px-6 py-3 rounded-full bg-yellow-500 font-serif text-black font-light border border-yellow-500 hover:border-yellow-500 hover:border hover:bg-yellow-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center text-base'
           >
             {loading ? (
               <>
@@ -170,6 +172,7 @@ export default function HomePage({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !loading && !llmLoading && inputPrompt.trim()) {
                       if (isTestGenerationRequest(inputPrompt)) {
+                        
                         onGenerateMCQs();
                       } else {
                         onLLMQuestion();

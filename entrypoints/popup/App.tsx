@@ -8,6 +8,8 @@ import PreviewPage from './pages/PreviewPage';
 import TestPage from './pages/TestPage';
 import ResultsPage from './pages/ResultsPage';
 import HistoryModal from './components/HistoryModal';
+import icon from '../../assets/Icon.png';
+
 
 function App() {
   const [screen, setScreen] = useState('home'); // 'home', 'preview', 'test', 'results', 'history'
@@ -20,7 +22,8 @@ function App() {
   const [session, setSession] = useState<any>(null);
   const [defaultTemp, setDefaultTemp] = useState(1.0);
   const [maxTopK, setMaxTopK] = useState(8);
-  
+  const [shouldCancel, setShouldCancel] = useState(false); // Flag to signal cancellation
+
   // Test state
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [userAnswers, setUserAnswers] = useState<any>({});
@@ -40,7 +43,7 @@ function App() {
     const initialize = async () => {
       // Check if generation completed while popup was closed
       const savedState = await chrome.storage.local.get(['loading', 'testData', 'screen', 'activeTabInfo', 'selectedTypes', 'numQuestions', 'generationCompleted']);
-      
+
       // If generation completed in background, show preview
       if (savedState.generationCompleted && savedState.testData) {
         setTestData(savedState.testData);
@@ -50,7 +53,7 @@ function App() {
         await loadSavedTests();
         return;
       }
-      
+
       // If we were loading, continue generation (it may still be in progress via background)
       if (savedState.loading && savedState.activeTabInfo && savedState.selectedTypes && savedState.numQuestions && !savedState.testData) {
         setLoading(true);
@@ -67,13 +70,13 @@ function App() {
         }, 500);
         return;
       }
-      
+
       // Don't reset if we already have test data
       if (testData) {
         await loadSavedTests();
         return;
       }
-      
+
       await loadSavedTests();
       await initDefaults();
       await loadSavedState();
@@ -121,6 +124,7 @@ function App() {
     }
   }
 
+  
   async function runPrompt(prompt: string, params: any) {
     try {
       let currentSession = session;
@@ -154,7 +158,7 @@ function App() {
 
       // Remove markdown code fences if present
       let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
-      
+
       // Try parsing after removing code fences
       try {
         return JSON.parse(cleaned);
@@ -165,13 +169,13 @@ function App() {
       // Look for content between first { and last }
       const firstBrace = cleaned.indexOf('{');
       const lastBrace = cleaned.lastIndexOf('}');
-      
+
       if (firstBrace === -1 || lastBrace === -1) {
         throw new Error('No JSON found in response');
       }
-      
+
       const jsonStr = cleaned.substring(firstBrace, lastBrace + 1);
-      
+
       // Try parsing the extracted portion directly
       try {
         return JSON.parse(jsonStr);
@@ -183,7 +187,7 @@ function App() {
           .replace(/\n/g, ' ')     // Replace newlines with spaces
           .replace(/\r/g, '')      // Remove carriage returns
           .replace(/\t/g, ' ');    // Replace tabs with spaces
-        
+
         return JSON.parse(fixed);
       }
     } catch (error: any) {
@@ -196,10 +200,11 @@ function App() {
   async function handleGenerateMCQs() {
     setLoading(true);
     setError('');
-    
+    setShouldCancel(false); // Reset cancel flag when starting new generation
+
     // Mark generation as in progress
-    await chrome.storage.local.set({ 
-      loading: true, 
+    await chrome.storage.local.set({
+      loading: true,
       generationCompleted: false,
       activeTabInfo,
       selectedTypes: Array.from(selectedTypes),
@@ -228,9 +233,9 @@ function App() {
           const fallback = generateFallbackQuestions(page, selectedTypes, count);
           setTestData(fallback);
           setScreen('preview');
-          await chrome.storage.local.set({ 
-            testData: fallback, 
-            loading: false, 
+          await chrome.storage.local.set({
+            testData: fallback,
+            loading: false,
             generationCompleted: true,
             screen: 'preview'
           });
@@ -251,14 +256,19 @@ function App() {
         const maxAttempts = 3;
 
         while (attempts < maxAttempts) {
+          // Check if user clicked cancel
+          if (shouldCancel) {
+            throw new Error('Generation cancelled by user');
+          }
+
           try {
             result = await runPrompt(generationPrompt, params);
             parsed = extractJSON(result);
-            
+
             if (!parsed.questions || !Array.isArray(parsed.questions) || parsed.questions.length === 0) {
               throw new Error('Invalid question format');
             }
-            
+
             break;
           } catch (e: any) {
             attempts++;
@@ -269,22 +279,27 @@ function App() {
             await new Promise(resolve => setTimeout(resolve, 500));
           }
         }
-        
+
+        // Check again before saving (in case cancel was clicked while processing)
+        if (shouldCancel) {
+          throw new Error('Generation cancelled by user');
+        }
+
         // Save completion to storage (works even if popup closed)
-        await chrome.storage.local.set({ 
-          testData: parsed, 
-          loading: false, 
+        await chrome.storage.local.set({
+          testData: parsed,
+          loading: false,
           generationCompleted: true,
           screen: 'preview'
         });
-        
+
         setTestData(parsed);
         setScreen('preview');
       } catch (e: any) {
         console.error('Generation error:', e);
         setError(e.toString());
-        await chrome.storage.local.set({ 
-          loading: false, 
+        await chrome.storage.local.set({
+          loading: false,
           generationCompleted: false,
           error: e.toString()
         });
@@ -292,7 +307,7 @@ function App() {
         setLoading(false);
       }
     })();
-    
+
     // Don't await - let it run in background
     generationPromise.catch(err => {
       console.error('Background generation error:', err);
@@ -301,11 +316,11 @@ function App() {
 
   async function handleLLMQuestion() {
     if (!inputPrompt.trim()) return;
-    
+
     setLlmLoading(true);
     setError('');
     setLlmResponse('');
-    
+
     try {
       if (!('LanguageModel' in self)) {
         setError('Language Model not available');
@@ -313,16 +328,44 @@ function App() {
         return;
       }
 
-      const params = {
+      // Check if the question is about the current page
+      const lowerPrompt = inputPrompt.toLowerCase();
+      const needsPageContent = 
+        lowerPrompt.includes('this page') ||
+        lowerPrompt.includes('current page') ||
+        lowerPrompt.includes('summarize') ||
+        lowerPrompt.includes('summary') ||
+        lowerPrompt.includes('what is this about') ||
+        lowerPrompt.includes('explain this');
+
+      let contextualPrompt = inputPrompt;
+
+      // Fetch page content if needed
+      if (needsPageContent) {
+        try {
+          const page = await fetchActiveTabContent();
+          const pageText = `${page.title}\n\n${page.text}`.slice(0, 50000); // Limit to 50k chars
+          contextualPrompt = `Based on the following page content, ${inputPrompt}\n\nPage Content:\n${pageText}`;
+        } catch (e) {
+          console.error('Failed to fetch page content:', e);
+          // Continue with original prompt if fetch fails
+        }
+      }
+
+      // Create a fresh session for Q&A (don't reuse the JSON generation session)
+      const qaSession = await (self as any).LanguageModel.create({
         initialPrompts: [
-          { role: 'system', content: 'You are a helpful assistant. Provide clear, concise answers.' }
+          { role: 'system', content: 'You are a helpful assistant. Provide clear, concise answers in plain text. When summarizing, be thorough but concise.' }
         ],
         temperature: temperature,
         topK: topK
-      };
+      });
 
-      const result = await runPrompt(inputPrompt, params);
+      const result = await qaSession.prompt(contextualPrompt);
       setLlmResponse(result);
+      
+      // Clean up the Q&A session
+      qaSession.destroy();
     } catch (e: any) {
       console.error('LLM question error:', e);
       setError(e.toString());
@@ -330,16 +373,16 @@ function App() {
       setLlmLoading(false);
     }
   }
-  
+
   function isTestGenerationRequest(prompt: string): boolean {
     const lower = prompt.toLowerCase().trim();
     // More specific keywords that indicate test generation
-    return lower.startsWith('generate') || 
-           lower.startsWith('create') ||
-           lower.includes('generate test') ||
-           lower.includes('create test') ||
-           lower.includes('make test') ||
-           (lower.includes('test') && (lower.includes('from') || lower.includes('about')));
+    return lower.startsWith('generate') ||
+      lower.startsWith('create') ||
+      lower.includes('generate test') ||
+      lower.includes('create test') ||
+      lower.includes('make test') ||
+      (lower.includes('test') && (lower.includes('from') || lower.includes('about')));
   }
 
   async function fetchActiveTabContent(): Promise<any> {
@@ -376,7 +419,7 @@ function App() {
       if (loading) {
         return;
       }
-      
+
       const result = await chrome.storage.local.get([
         'inputPrompt',
         'temperature',
@@ -467,18 +510,18 @@ function App() {
   async function saveTest() {
     try {
       if (!testData || isSaving) return;
-      
+
       setIsSaving(true);
-      
+
       const title = testData.source_title?.split('|')[0]?.trim() || `Test ${new Date().toLocaleDateString()}`;
-      
+
       // Get fresh saved tests to avoid stale state
       const result = await chrome.storage.local.get(['savedTests']);
       const currentSavedTests = result.savedTests || [];
-      
+
       // Check if a test with the same title already exists
       const existingIndex = currentSavedTests.findIndex((t: SavedTest) => t.title === title);
-      
+
       const savedTest: SavedTest = {
         id: existingIndex >= 0 ? currentSavedTests[existingIndex].id : Date.now().toString(),
         testData,
@@ -498,7 +541,7 @@ function App() {
         // Add new test
         updated = [...currentSavedTests, savedTest];
       }
-      
+
       setSavedTests(updated);
       await chrome.storage.local.set({ savedTests: updated });
     } catch (e: any) {
@@ -520,7 +563,7 @@ function App() {
 
   async function archiveTest(id: string) {
     try {
-      const updated = savedTests.map(t => 
+      const updated = savedTests.map(t =>
         t.id === id ? { ...t, isArchived: true } : t
       );
       setSavedTests(updated);
@@ -532,7 +575,7 @@ function App() {
 
   async function unarchiveTest(id: string) {
     try {
-      const updated = savedTests.map(t => 
+      const updated = savedTests.map(t =>
         t.id === id ? { ...t, isArchived: false } : t
       );
       setSavedTests(updated);
@@ -609,19 +652,19 @@ function App() {
 
   async function handleSubmitTest() {
     setTestStarted(false);
-    
+
     // Save as completed test
     if (testData) {
       const score = calculateScore();
       const percentage = (score / testData.questions.length) * 100;
       const title = testData.source_title?.split('|')[0]?.trim() || `Test ${new Date().toLocaleDateString()}`;
-      
+
       const result = await chrome.storage.local.get(['savedTests']);
       const currentSavedTests = result.savedTests || [];
-      
+
       // Check if already exists as active test, if so remove it first
       const existingIndex = currentSavedTests.findIndex((t: SavedTest) => t.id === testData.id && !t.isCompleted);
-      
+
       const completedTest: SavedTest = {
         id: testData.id || Date.now().toString(),
         testData,
@@ -635,7 +678,7 @@ function App() {
         score,
         percentage
       };
-      
+
       let updated: SavedTest[];
       if (existingIndex >= 0) {
         updated = [...currentSavedTests];
@@ -643,11 +686,11 @@ function App() {
       } else {
         updated = [...currentSavedTests, completedTest];
       }
-      
+
       setSavedTests(updated);
       await chrome.storage.local.set({ savedTests: updated });
     }
-    
+
     setScreen('results');
   }
 
@@ -708,70 +751,77 @@ function App() {
         />
         {/* Loading Overlay */}
         {loading && (
-          <div className='fixed inset-0 flex items-center justify-center bg-black/60 z-40'>
-            <div className='w-[720px] relative bg-[#0b0b10] border border-[#2b2b46] overflow-hidden' style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.6), inset 0 0 50px rgba(118,70,255,0.06)' }}>
-              {/* Header */}
-              <div className='flex items-center justify-between px-5 py-4 border-b border-white/5'>
-                <div className='flex items-center gap-3'>
-                  {activeTabInfo?.favicon ? (
-                    <img src={activeTabInfo.favicon} alt='site' className='w-8 h-8 rounded-sm border border-white/8' />
-                  ) : (
-                    <div className='w-8 h-8 rounded-sm bg-white/6' />
-                  )}
-                  <div className='flex flex-col'>
-                    <div className='text-sm text-gray-100 font-semibold line-clamp-1'>{activeTabInfo?.title || 'Current page'}</div>
-                    <div className='text-xs text-gray-400'>{/* optional subtitle */}</div>
+          <div className='fixed inset-0 flex items-center justify-center  backdrop-blur-3xl bg-black/60 z-40'>
+            <div className='w-[720px] relative  overflow-hidden' >
+              {/* Header - Tab style */}
+              <div className='pl-6'>
+
+
+                <div className='flex items-center justify-between px-2 py-2 border border-white/5 bg-white/2 w-fit gap-3 rounded-full'>
+                  <div className='flex items-center px-2 gap-3'>
+                    {activeTabInfo?.favicon ? (
+                      <img src={activeTabInfo.favicon} alt='site' className='w-6 h-6 rounded-sm   shrink-0' />
+                    ) : (
+                      <div className='w-6 h-6 rounded-sm  shrink-0' />
+                    )}
+                    <div className='text-sm text-neutral-100 font-normal line-clamp-1 max-w-xs'>{activeTabInfo?.title || 'Current page'}</div>
                   </div>
-                </div>
-                <div className='flex items-center gap-3'>
-                  <button onClick={() => { setLoading(false); reset(); }} className='w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10'>
-                    <X className='w-4 h-4 text-gray-300' />
+                  <button onClick={() => { setLoading(false); reset(); }} className='w-6 h-6 flex items-center justify-center rounded-sm hover:bg-white/20 shrink-0 ml-1'>
+                    <X className='w-4 h-4 text-neutral-400 hover:text-neutral-200' />
                   </button>
                 </div>
               </div>
 
               {/* Main content - two columns */}
-              <div className='p-6 flex gap-6'>
+              <div className='px-6 pt-4 flex gap-3'>
                 {/* Left: preview + spinner */}
                 <div className='flex-1 bg-black/20 rounded-xl p-4 border border-white/5'>
                   <div className='mb-3'>
-                    <div className='text-xs text-gray-400 mb-2'>Preview</div>
-                    <div className='h-40 overflow-hidden rounded-md text-sm text-gray-200 leading-relaxed'>
+                    <div className='text-xs text-neutral-400 mb-2'>Preview</div>
+                    <div className='h-40 overflow-hidden rounded-md text-sm text-neutral-200 leading-relaxed'>
                       {/* Show a trimmed preview of the page text if available */}
                       {activeTabInfo?.title ? (
                         <div className='prose max-w-none wrap-break-word'>{activeTabInfo.title}</div>
                       ) : (
-                        <div className='text-gray-400'>Page content preview unavailable</div>
+                        <div className='text-neutral-400'>Page content preview unavailable</div>
                       )}
                     </div>
                   </div>
 
-                  <div className='flex items-center gap-4 mt-4'>
-                    <div className='w-10 h-10 rounded-full border-4 border-t-yellow-400 border-white/10 animate-spin' />
-                    <div className='text-gray-400'>Generating test questions... This may take a moment.</div>
+                  <div className='flex items-start gap-3 w-full mt-4'>
+                    {/* Left reserved column: fixed width so layout won't shrink if icon is removed */}
+                    <div className='w-24 shrink-0 flex flex-col items-start'>
+                      <img src={icon} alt='App icon' className='w-6 h-6 rounded-md object-cover border border-white/6' />
+                      <div className='text-xs text-neutral-400 mt-2 text-start'>Generating test questions... This may take a moment.</div>
+                    </div>
+
+                    {/* Right area: keeps space for additional content in future */}
+                    <div className='flex-1 flex items-center'>
+                      {/* Intentionally left blank to preserve width and alignment */}
+                    </div>
                   </div>
                 </div>
 
                 {/* Right: details & actions */}
-                <div className='w-60 flex flex-col gap-4'>
-                  <div className='bg-[#0f0f16] rounded-xl p-3 border border-white/5'>
-                    <div className='text-xs text-gray-400 mb-2'>Selected Types</div>
+                <div className='w-60 flex flex-col gap-3'>
+                  <div className='bg-black/20 rounded-xl p-3 border border-white/5'>
+                    <div className='text-xs text-neutral-400 mb-2'>Selected Types</div>
                     <div className='flex flex-wrap gap-2'>
                       {Array.from(selectedTypes).map(type => (
-                        <span key={type} className='px-3 py-1 rounded-full bg-[#1b1b27] text-gray-200 text-[12px]'>
+                        <span key={type} className='px-3 py-1 rounded-full bg-[#1b1b1b] text-neutral-200 text-[12px]'>
                           {type === 'mcq' ? 'MCQ' : type === 'true_false' ? 'True/False' : 'Fill In'}
                         </span>
                       ))}
                     </div>
                   </div>
 
-                  <div className='bg-[#0f0f16] rounded-xl p-4 border border-white/5 flex items-center justify-center text-yellow-400 font-bold text-2xl'>
+                  <div className='bg-black/20 rounded-xl p-4 border border-white/5 flex items-center justify-center text-yellow-400 font-bold text-2xl'>
                     {numQuestions}
                   </div>
 
-                  <div className='mt-auto flex flex-col gap-2'>
-                    <button onClick={() => { setLoading(false); setScreen('home'); }} className='w-full px-4 py-2 rounded-lg bg-[#1f1f2e] text-gray-300 hover:bg-[#2a2a3d]'>Stop & Go Home</button>
-                    <button onClick={() => { setLoading(false); reset(); }} className='w-full px-4 py-2 rounded-lg bg-yellow-500 text-black font-bold hover:bg-yellow-400'>Cancel Generation</button>
+                  <div className='mt-auto pb-1 flex flex-col gap-2'>
+                    {/* <button onClick={() => { setLoading(false); setScreen('home'); }} className='w-full px-4 py-2 rounded-lg bg-[#1f1f2e] text-neutral-300 hover:bg-[#2a2a3d]'>Stop & Go Home</button> */}
+                    <button onClick={() => { reset(); setLoading(false); chrome.storage.local.remove(['loading', 'generationCompleted', 'testData']); }} className='w-full px-4 py-4 rounded-full bg-yellow-500 font-serif text-black font-light border transition-colors border-yellow-500 hover:border-yellow-500 hover:border hover:bg-yellow-900 hover:text-white duration-500'>Cancel & Clear</button>
                   </div>
                 </div>
               </div>

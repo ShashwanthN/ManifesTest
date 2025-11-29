@@ -39,20 +39,20 @@ export default function TestPage({
   return (
     <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
       {/* Header */}
-      <div className='border-b border-gray-800'>
+      <div className='border-b border-neutral-800'>
         {/* Top Row - Main Info */}
         <div className='flex items-center justify-between px-4 py-2'>
           <button
             onClick={onGoHome}
             className='w-8 h-8 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors shrink-0'
           >
-            <Home className='w-4 h-4 text-gray-400' />
+            <Home className='w-4 h-4 text-neutral-400' />
           </button>
           <div className='flex-1 flex flex-col items-center gap-1 mx-3 min-w-0'>
-            <div className='text-sm text-gray-300 font-medium whitespace-nowrap'>
+            <div className='text-sm text-neutral-300 font-medium font-serif whitespace-nowrap'>
               Question {currentQuestion + 1} of {testData.questions.length}
             </div>
-            <div className='w-full max-w-[200px] h-1 bg-gray-800 rounded-full overflow-hidden'>
+            <div className='w-full max-w-[200px] h-1 bg-neutral-800 rounded-full overflow-hidden'>
               <div 
                 className='h-full bg-yellow-500 transition-all duration-300'
                 style={{ width: `${progress}%` }}
@@ -63,14 +63,14 @@ export default function TestPage({
         </div>
         
         {/* Bottom Row - Secondary Info */}
-        <div className='flex items-center justify-between px-4 py-1.5 border-t border-gray-800/50'>
-          <div className='text-xs text-gray-500'>
+        <div className='flex items-center justify-between px-4 py-1.5 border-t border-neutral-800'>
+          <div className='text-xs text-neutral-500'>
             {answeredQuestions} of {testData.questions.length} answered
           </div>
           <button
             onClick={onSaveTest}
             disabled={isSaving}
-            className='px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors flex items-center gap-1 disabled:opacity-50 shrink-0'
+            className='px-2 py-1 bg-neutral-700 hover:bg-neutral-600 text-white text-xs rounded transition-colors flex items-center gap-1 disabled:opacity-50 shrink-0'
           >
             <Save className='w-3 h-3' />
             {isSaving ? 'Saving...' : 'Save'}
@@ -82,14 +82,14 @@ export default function TestPage({
       <div className='flex-1 flex flex-col px-6 py-4 overflow-y-auto'>
         <div className='w-full max-w-2xl mx-auto space-y-6'>
           <div className='flex items-start gap-3'>
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
               userAnswers[currentQuestion] !== undefined 
                 ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50' 
-                : 'bg-gray-700 text-gray-400 border-2 border-gray-600'
+                : 'bg-neutral-700 text-neutral-400 border-2 border-neutral-600'
             }`}>
               {currentQuestion + 1}
             </div>
-            <h2 className='text-lg text-white font-medium leading-relaxed flex-1 pt-1.5'>
+            <h2 className='text-lg text-white font-medium font-serif leading-relaxed flex-1 pt-'>
               {question.question}
             </h2>
           </div>
@@ -104,7 +104,7 @@ export default function TestPage({
                   className={`w-full p-3.5 rounded-xl text-left transition-all ${
                     userAnswers[currentQuestion] === idx
                       ? 'bg-yellow-500 text-black font-medium'
-                      : 'bg-[#202020] text-gray-300 hover:bg-[#2A2A2A] border border-transparent hover:border-gray-600'
+                      : 'bg-[#202020] text-neutral-300 hover:bg-[#2A2A2A] border border-transparent hover:border-neutral-600'
                   }`}
                 >
                   <span className='font-bold mr-3 text-base'>{String.fromCharCode(65 + idx)}.</span>
@@ -122,7 +122,7 @@ export default function TestPage({
                 className={`w-full p-3.5 rounded-xl text-left transition-all ${
                   userAnswers[currentQuestion] === true
                     ? 'bg-yellow-500 text-black font-medium'
-                    : 'bg-[#202020] text-gray-300 hover:bg-[#2A2A2A] border border-transparent hover:border-gray-600'
+                    : 'bg-[#202020] text-neutral-300 hover:bg-[#2A2A2A] border border-transparent hover:border-neutral-600'
                 }`}
               >
                 <span className='text-base font-medium'>True</span>
@@ -132,7 +132,7 @@ export default function TestPage({
                 className={`w-full p-3.5 rounded-xl text-left transition-all ${
                   userAnswers[currentQuestion] === false
                     ? 'bg-yellow-500 text-black font-medium'
-                    : 'bg-[#202020] text-gray-300 hover:bg-[#2A2A2A] border border-transparent hover:border-gray-600'
+                    : 'bg-[#202020] text-neutral-300 hover:bg-[#2A2A2A] border border-transparent hover:border-neutral-600'
                 }`}
               >
                 <span className='text-base font-medium'>False</span>
@@ -148,7 +148,7 @@ export default function TestPage({
                 value={userAnswers[currentQuestion] || ''}
                 onChange={(e) => onAnswerSelect(currentQuestion, e.target.value)}
                 placeholder='Type your answer...'
-                className='w-full p-3.5 rounded-xl bg-[#202020] text-white placeholder-gray-500 border border-gray-700 focus:border-yellow-500 focus:outline-none text-sm'
+                className='w-full p-3.5 rounded-xl bg-[#202020] text-white placeholder-neutral-500 border border-neutral-700 focus:border-yellow-500 focus:outline-none text-sm'
               />
             </div>
           )}
@@ -156,12 +156,12 @@ export default function TestPage({
       </div>
 
       {/* Navigation Footer */}
-      <div className='flex flex-col gap-3 px-6 py-3 border-t border-gray-800 bg-[#1A1A1A]'>
+      <div className='flex flex-col gap-3 px-6 py-3 border-t border-neutral-800 bg-[#1A1A1A]'>
         <div className='flex justify-between items-center'>
           <button
             onClick={onPreviousQuestion}
             disabled={currentQuestion === 0}
-            className='px-5 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors flex items-center gap-2 text-sm'
+            className='px-5 py-2 bg-neutral-700 text-white rounded-full disabled:opacity-50 border border-transparent disabled:cursor-not-allowed hover:bg-neutral-600 transition-colors flex items-center gap-2 text-sm'
           >
             <ArrowLeft className='w-4 h-4' />
             Previous
@@ -175,16 +175,16 @@ export default function TestPage({
                 onNextQuestion();
               }
             }}
-            className='px-5 py-2 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition-colors flex items-center gap-2 text-sm'
+            className='px-5 py-2 bg-yellow-500 font-serif text-black font-light rounded-full border border-yellow-500 hover:border-yellow-500 hover:border hover:bg-yellow-900 hover:text-white transition-colors flex items-center gap-2 text-sm'
           >
-            {currentQuestion === testData.questions.length - 1 ? 'Submit Test' : 'Next Question'}
+            {currentQuestion === testData.questions.length - 1 ? 'Submit Test' : 'Next'}
             {currentQuestion !== testData.questions.length - 1 && (
               <ArrowLeft className='w-4 h-4 rotate-180' />
             )}
           </button>
         </div>
         
-        <div className='flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent'>
+        <div className='flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent'>
           {testData.questions.map((_: any, idx: number) => (
             <button
               key={idx}
@@ -194,7 +194,7 @@ export default function TestPage({
                   ? 'bg-yellow-500 text-black'
                   : userAnswers[idx] !== undefined
                   ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                  : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                  : 'bg-neutral-700 text-neutral-400 hover:bg-neutral-600'
               }`}
             >
               {idx + 1}

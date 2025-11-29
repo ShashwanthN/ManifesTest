@@ -69,12 +69,12 @@ export default function ResultsPage({
   return (
     <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative overflow-y-auto" style={{ height: '100vh' }}>
       {/* Header */}
-      <div className='flex justify-between items-center px-6 pt-6 pb-4 border-b border-gray-800'>
+      <div className='flex justify-between items-center px-6 pt-6 pb-4 border-b border-neutral-800'>
         <button
           onClick={onGoHome}
           className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'
         >
-          <Home className='w-5 h-5 text-gray-400' />
+          <Home className='w-5 h-5 text-neutral-400' />
         </button>
         <h1 className="text-lg text-white font-bold">
           Test Results
@@ -94,8 +94,8 @@ export default function ResultsPage({
               <div className={`text-7xl font-bold ${performanceColor}`}>
                 {score}
               </div>
-              <div className='text-4xl text-gray-500'>/</div>
-              <div className='text-7xl font-bold text-gray-400'>
+              <div className='text-4xl text-neutral-500'>/</div>
+              <div className='text-7xl font-bold text-neutral-400'>
                 {total}
               </div>
             </div>
@@ -142,11 +142,11 @@ export default function ResultsPage({
           <div className='grid grid-cols-2 gap-4'>
             <div className='bg-[#202020] border border-green-500/30 rounded-2xl p-4 text-center'>
               <div className='text-3xl font-bold text-green-400 mb-1'>{score}</div>
-              <div className='text-sm text-gray-400'>Correct Answers</div>
+              <div className='text-sm text-neutral-400'>Correct Answers</div>
             </div>
             <div className='bg-[#202020] border border-red-500/30 rounded-2xl p-4 text-center'>
               <div className='text-3xl font-bold text-red-400 mb-1'>{incorrect}</div>
-              <div className='text-sm text-gray-400'>Incorrect Answers</div>
+              <div className='text-sm text-neutral-400'>Incorrect Answers</div>
             </div>
           </div>
 
@@ -209,7 +209,7 @@ export default function ResultsPage({
           <div className='flex gap-4'>
             <button
               onClick={onReviewTest}
-              className='flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors'
+              className='flex-1 px-6 py-3 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-xl transition-colors'
             >
               Review Test
             </button>

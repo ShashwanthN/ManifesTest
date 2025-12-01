@@ -78,7 +78,7 @@ pnpm run build
 2. Open Chrome and navigate to `chrome://extensions`.
 3. Enable **Developer mode** (toggle at top-right).
 4. Click **Load unpacked**.
-5. In the file chooser, select the built extension folder (`dist/` or `build/` — the folder that contains `manifest.json`).
+5. In the file chooser, select the built extension folder (`output/` — the folder that contains `manifest.json`).
 6. The extension will load into your personal profile and should appear in the extensions list. Use the extension icon or configured shortcuts to run it.
 
 

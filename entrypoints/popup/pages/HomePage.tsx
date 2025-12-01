@@ -113,7 +113,6 @@ export default function HomePage({
             </div>
           </div>
 
-          {/* Generate Button */}
           <div className='w-full max-w-2xl'>
             <button
               disabled={loading || selectedTypes.size === 0}

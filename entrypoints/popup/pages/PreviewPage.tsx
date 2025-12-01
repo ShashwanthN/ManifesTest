@@ -21,7 +21,6 @@ export default function PreviewPage({
 }: PreviewPageProps) {
   return (
     <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
-      {/* Header */}
       <div className='flex justify-between items-center px-4 pt-3 pb-2'>
         <div className='flex items-center gap-2'>
           <button 
@@ -43,10 +42,8 @@ export default function PreviewPage({
           </button>
       </div>
 
-      {/* Main Content */}
       <div className='flex-1 flex flex-col px-8 py-4 pb-2 overflow-y-auto'>
         <div className='w-full mx-auto space-y-3 flex-1 flex flex-col'>
-          {/* Title Section */}
           <div className='text-center py-4 pb-2  space-y-3'>
             <h1 className="text-xl font-normal font-serif text-white">
               {testData.source_title?.split('|')[0]?.trim() || 'Test'}
@@ -56,13 +53,11 @@ export default function PreviewPage({
             </p>
           </div>
 
-          {/* Time and Marks */}
           <div className='flex justify-between text-gray-300 text-sm'>
             <span>Time: 10 min</span>
             <span>Max. Marks: {testData.questions.length}</span>
           </div>
 
-          {/* Instructions */}
           <div className='text-gray-300 pb-4 space-y-1'>
             <p className='font-medium text-sm'>Instructions:</p>
             <ol className='list-decimal list-inside space-y-0.5 text-xs ml-2'>
@@ -72,9 +67,9 @@ export default function PreviewPage({
             </ol>
           </div>
 
-          {/* Action Container */}
+
           <div className='w-full rounded-xl  bg-[#202020] border border-[#3d3d3d] flex  items-center justify-center mt-2'>
-            {/* Buttons */}
+
             <div className='flex items-center gap-4 p-4 pb-5'>
               <button 
                 onClick={onSaveTest}
@@ -95,14 +90,13 @@ export default function PreviewPage({
         </div>
       </div>
 
-      {/* Footer - Timer and Fullscreen Button */}
+
       <div className='flex justify-between items-center px-4 py-2 border-t border-neutral-800'>
-        {/* Timer at bottom left */}
+
         <div className='text-3xl font-bold text-white'>
           10:00
         </div>
         
-        {/* Fullscreen button at bottom right */}
         {/* <button 
           onClick={() => {
             if (document.documentElement.requestFullscreen) {

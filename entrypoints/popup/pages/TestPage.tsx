@@ -38,9 +38,9 @@ export default function TestPage({
 
   return (
     <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
-      {/* Header */}
+
       <div className='border-b border-neutral-800'>
-        {/* Top Row - Main Info */}
+
         <div className='flex items-center justify-between px-4 py-2'>
           <button
             onClick={onGoHome}
@@ -62,7 +62,7 @@ export default function TestPage({
           <div className='text-yellow-500 font-bold text-lg whitespace-nowrap shrink-0'>{formatTime(timeLeft)}</div>
         </div>
         
-        {/* Bottom Row - Secondary Info */}
+
         <div className='flex items-center justify-between px-4 py-1.5 border-t border-neutral-800'>
           <div className='text-xs text-neutral-500'>
             {answeredQuestions} of {testData.questions.length} answered
@@ -78,7 +78,6 @@ export default function TestPage({
         </div>
       </div>
 
-      {/* Question Content */}
       <div className='flex-1 flex flex-col px-6 py-4 overflow-y-auto'>
         <div className='w-full max-w-2xl mx-auto space-y-6'>
           <div className='flex items-start gap-3'>
@@ -94,7 +93,6 @@ export default function TestPage({
             </h2>
           </div>
 
-          {/* MCQ Question */}
           {question.type === 'mcq' && question.options && (
             <div className='space-y-2.5'>
               {question.options.map((option: string, idx: number) => (
@@ -114,7 +112,7 @@ export default function TestPage({
             </div>
           )}
 
-          {/* True/False Question */}
+
           {question.type === 'true_false' && (
             <div className='space-y-2.5'>
               <button
@@ -140,7 +138,7 @@ export default function TestPage({
             </div>
           )}
 
-          {/* Fill In Question */}
+  
           {question.type === 'fill_in' && (
             <div className='space-y-2.5'>
               <input
@@ -155,7 +153,7 @@ export default function TestPage({
         </div>
       </div>
 
-      {/* Navigation Footer */}
+
       <div className='flex flex-col gap-3 px-6 py-3 border-t border-neutral-800 bg-[#1A1A1A]'>
         <div className='flex justify-between items-center'>
           <button

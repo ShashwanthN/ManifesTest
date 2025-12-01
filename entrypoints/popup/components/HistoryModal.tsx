@@ -43,7 +43,6 @@ export default function HistoryModal({
           </button>
         </div>
         
-        {/* Tabs */}
         <div className='flex gap-2 mb-4 border-b border-[#3d3d3d]'>
           <button
             onClick={() => onTabChange('active')}
@@ -154,7 +153,6 @@ export default function HistoryModal({
                       </div>
                     </div>
                     
-                    {/* Action Buttons */}
                     <div className='flex gap-2 mt-3'>
                       {test.isCompleted ? (
                         <>

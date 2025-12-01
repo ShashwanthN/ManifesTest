@@ -5,8 +5,8 @@ interface VerticalSliderProps {
   max: number;
   value: number;
   onChange: (value: number) => void;
-  lineLength?: number; // Length of measurement lines in pixels
-  numLines?: number; // Number of measurement lines to display (defaults to all values)
+  lineLength?: number;
+  numLines?: number; 
 }
 
 const VerticalSlider: React.FC<VerticalSliderProps> = ({ 
@@ -21,12 +21,12 @@ const VerticalSlider: React.FC<VerticalSliderProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState(0);
   const [dragStartValue, setDragStartValue] = useState(value);
-  const wheelSensitivity = useRef(0); // Accumulate wheel deltas for less sensitivity
+  const wheelSensitivity = useRef(0);
 
-  // Calculate visible numbers (showing 5 numbers: 2 above, selected, 2 below)
+  
   const getVisibleNumbers = () => {
     const numbers: number[] = [];
-    const range = 2; // Show 2 numbers above and below
+    const range = 2; 
     
     for (let i = value - range; i <= value + range; i++) {
       if (i >= min && i <= max) {
@@ -39,15 +39,13 @@ const VerticalSlider: React.FC<VerticalSliderProps> = ({
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    // Reduce sensitivity - accumulate delta
     wheelSensitivity.current += e.deltaY;
     
-    // Only change value after accumulating significant scroll (increased threshold for lower sensitivity)
     if (Math.abs(wheelSensitivity.current) > 150) {
       const delta = wheelSensitivity.current > 0 ? -1 : 1;
       const newValue = Math.max(min, Math.min(max, value + delta));
       onChange(newValue);
-      wheelSensitivity.current = 0; // Reset accumulator
+      wheelSensitivity.current = 0; 
     }
   };
 
@@ -67,9 +65,9 @@ const VerticalSlider: React.FC<VerticalSliderProps> = ({
     const sliderHeight = rect.height;
     const valueRange = max - min;
     
-    // Calculate value change based on drag distance
-    // Each pixel moved = some fraction of value range
-    const pixelsPerValue = sliderHeight / (valueRange * 2); // More drag needed per value
+  
+  
+    const pixelsPerValue = sliderHeight / (valueRange * 2); 
     const valueDelta = Math.round(deltaY / pixelsPerValue);
     const newValue = Math.max(min, Math.min(max, dragStartValue - valueDelta));
     
@@ -100,20 +98,15 @@ const VerticalSlider: React.FC<VerticalSliderProps> = ({
   const visibleNumbers = getVisibleNumbers();
   const selectedIndex = visibleNumbers.indexOf(value);
 
-  // Generate static measurement lines (like a car gauge)
-  // If numLines is specified, use that many evenly spaced lines
-  // Otherwise, show one line for each value
   const allMeasurementLines: number[] = [];
   const totalValues = max - min + 1;
   const totalLines = numLines || totalValues;
   
   for (let i = 0; i < totalLines; i++) {
     if (numLines) {
-      // Evenly distribute lines across the range
       const num = min + Math.round((i / (totalLines - 1)) * (max - min));
       allMeasurementLines.push(num);
     } else {
-      // One line per value
       const num = min + i;
       allMeasurementLines.push(num);
     }
@@ -139,10 +132,10 @@ const VerticalSlider: React.FC<VerticalSliderProps> = ({
         `,
       }}
     >
-      {/* Static measurement lines on the left (like car gauge) - evenly distributed, fixed horizontal length */}
+   
       <div className="absolute -left-1 top-0 bottom-0 w-full pointer-events-none" style={{ paddingTop: '4px', paddingBottom: '4px' }}>
         {allMeasurementLines.map((num, idx) => {
-          const percentage = totalLines > 1 ? (idx / (totalLines - 1)) * 100 : 50; // Even distribution
+          const percentage = totalLines > 1 ? (idx / (totalLines - 1)) * 100 : 50; 
           
           return (
             <div
@@ -151,17 +144,16 @@ const VerticalSlider: React.FC<VerticalSliderProps> = ({
               style={{
                 left: '4px',
                 top: `${percentage}%`,
-                width: `${lineLength}px`, // Horizontal width (length) - fixed
-                height: '2px', // Fixed vertical height
+                width: `${lineLength}px`, 
+                height: '2px', 
                 transform: 'translateY(-50%)',
-                opacity: 0.4, // Fixed opacity for all lines
+                opacity: 0.4,
               }}
             />
           );
         })}
       </div>
 
-      {/* Red indicator line - horizontal line pointing to selected value */}
       <div
         className="absolute left-0 w-2 h-0.5 bg-red-500 z-10 pointer-events-none"
         style={{
@@ -171,36 +163,30 @@ const VerticalSlider: React.FC<VerticalSliderProps> = ({
         }}
       />
 
-      {/* Numbers - scroll vertically with variable spacing, tilt effect, and size variation */}
       <div className="relative w-full h-full flex flex-col items-center justify-center pointer-events-none" style={{ perspective: '300px' }}>
         {visibleNumbers.map((num, idx) => {
           const distance = Math.abs(idx - selectedIndex);
           const isSelected = num === value;
           const direction = idx - selectedIndex > 0 ? 1 : -1;
-          const isAbove = direction < 0; // True if above center
+          const isAbove = direction < 0; 
           
-          // Calculate spacing with variable gaps
           let spacing = 0;
           if (distance === 0) {
-            spacing = 0; // Selected at center
+            spacing = 0; 
           } else if (distance === 1) {
-            // Immediate neighbors: larger gap from center
             spacing = direction * 22;
           } else if (distance === 2) {
-            // Second neighbors: closer to first neighbors
             spacing = direction * (22 + 15);
           }
           
-          // Tilt effect: top numbers tilt down, bottom numbers tilt up
           const tiltAngle = distance > 0 ? (isAbove ? -12 : 12) * (1 - distance * 0.3) : 0;
           
-          // Size: top numbers smaller than bottom numbers at same distance
           const baseFontSize = isSelected ? 20 : Math.max(15, 15 - distance * 5);
           const fontSize = isSelected 
             ? baseFontSize 
             : isAbove 
-              ? baseFontSize * 0.85 // Top numbers 15% smaller
-              : baseFontSize; // Bottom numbers normal size
+              ? baseFontSize * 0.85 
+              : baseFontSize;
           
           return (
             <button

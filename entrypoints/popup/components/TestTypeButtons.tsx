@@ -25,8 +25,8 @@ const TestTypeButtons: React.FC<TestTypeButtonsProps> = ({ selectedTypes, onTogg
             className={`
               px-3 py-1 text-[12px] transition-all rounded-lg font-medium
               ${isSelected
-                ? 'bg-[#E6D9FF] text-black border-none' // Light lavender background when selected
-                : 'bg-[#2A2A2A] text-[#C9B3FF] border border-[#968EF3]' // Dark background with purple border when not selected
+                ? 'bg-[#E6D9FF] text-black border-none'
+                : 'bg-[#2A2A2A] text-[#C9B3FF] border border-[#968EF3]'
               }
               hover:opacity-90 whitespace-nowrap 
             `}

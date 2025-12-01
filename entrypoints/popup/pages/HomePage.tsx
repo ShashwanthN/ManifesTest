@@ -20,8 +20,6 @@ interface HomePageProps {
   onShowHistoryToggle: () => void;
   onReset: () => void;
   isTestGenerationRequest: (prompt: string) => boolean;
-
-  // NEW: handler to dismiss the answer pane (clears the llm response in parent)
   onDismissAnswer: () => void;
 }
 
@@ -46,7 +44,6 @@ export default function HomePage({
 }: HomePageProps) {
   return (
     <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative" style={{ height: '100vh', overflow: 'hidden' }}>
-      {/* Header */}
       <div className='flex justify-between items-center px-4 pt-6 pb-4'>
         <div className='flex items-center gap-2'>
           <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
@@ -68,7 +65,7 @@ export default function HomePage({
 
       <div className="flex-1 flex flex-col px-6 py-1 overflow-y-auto">
         <div className="flex flex-col items-center justify-center mx-auto space-y-4 w-full">
-          {/* Welcome Section */}
+ 
           <div className="text-start space-y-1 pl- pb-3">
             <h1 className="text-2xl text-white font-light font-stretch-expanded font-serif">
               Create a Test
@@ -78,7 +75,7 @@ export default function HomePage({
             </p>
           </div>
 
-          {/* Test Configuration Card */}
+
           <div className='bg-linear-to-br from-[#17171700] via-[#25252500] to-[#1f1f1f00] flex items-center justify-between w-full max-w-2xl border border-[#2f2f33] rounded-2xl py-4 px-5 gap-6 shadow-md relative overflow-hidden' >
             <div className='absolute left-0 top-0 h-full w-1 bg-linear-to-b from-transparent via-[#ffffff10] to-transparent opacity-30 pointer-events-none rounded-l-2xl' />
             <div className='absolute right-0 bottom-0 h-full w-1 bg-linear-to-b from-transparent via-[#ffffff08] to-transparent opacity-25 pointer-events-none rounded-r-2xl' />
@@ -145,7 +142,7 @@ export default function HomePage({
         </div>
       </div>
 
-      {/* Footer: Input Prompt Section */}
+
       <div className='px-4 pb-6 pt-6 border-t border-[#2b2b2b]'>
         <div className='space-y-1.5'>
           <div className='flex items-center gap-3'>
@@ -196,12 +193,9 @@ export default function HomePage({
             </div>
           </div>
 
-          {/* ===== Removed duplicate "LLM Loading State" block to avoid two identical dot indicators ===== */}
-
-          {/* LLM Response (with dismiss button) */}
           {llmResponse && !llmLoading && (
             <div className='rounded-xl p-4 bg-[#202020] border border-[#3d3d3d] max-h-48 overflow-y-auto relative'>
-              {/* Dismiss button (closes the whole answer area) */}
+              
               <button
                 onClick={onDismissAnswer}
                 className='absolute right-3 top-3 w-7 h-7 flex items-center justify-center rounded-md hover:bg-white/6'
@@ -212,7 +206,7 @@ export default function HomePage({
 
               <div className='flex items-start gap-2 mb-2'>
                 <div className='w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0'>
-                  {/* aligned vertically with flex container */}
+        
                   <Search className='w-3 h-3 text-yellow-500' />
                 </div>
                 <p className="text-xs text-gray-400 font-medium">Answer:</p>
@@ -221,7 +215,7 @@ export default function HomePage({
             </div>
           )}
 
-          {/* Error State */}
+
           {error && !llmResponse && !llmLoading && error.length > 50 && (
             <div className='rounded-xl p-3 bg-[#202020] border border-red-500/30 max-h-32 overflow-y-auto'>
               <p className="text-xs text-red-400 whitespace-pre-wrap">{error}</p>

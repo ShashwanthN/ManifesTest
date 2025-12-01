@@ -23,7 +23,6 @@ export default function ResultsPage({
   const percentage = (score / total) * 100;
   const incorrect = total - score;
   
-  // Calculate correct/incorrect counts
   const correctQuestions: number[] = [];
   const incorrectQuestions: Array<{index: number; question: Question; userAnswer: any; correctAnswer: any}> = [];
   
@@ -49,7 +48,7 @@ export default function ResultsPage({
     }
   });
 
-  // Determine performance message and color
+
   let performanceColor = 'text-yellow-500';
   let performanceMessage = 'Good job!';
   if (percentage >= 90) {
@@ -68,7 +67,7 @@ export default function ResultsPage({
 
   return (
     <div className="w-full h-full bg-[#1A1A1A] flex flex-col relative overflow-y-auto" style={{ height: '100vh' }}>
-      {/* Header */}
+
       <div className='flex justify-between items-center px-6 pt-6 pb-4 border-b border-neutral-800'>
         <button
           onClick={onGoHome}
@@ -82,14 +81,14 @@ export default function ResultsPage({
         <div className='w-10' />
       </div>
 
-      {/* Main Content */}
+   
       <div className='flex-1 overflow-y-auto px-6 py-6'>
         <div className='w-full max-w-3xl mx-auto space-y-6'>
-          {/* Score Card */}
+ 
           <div className='bg-gradient-to-br from-[#202020] to-[#1a1a1a] border border-[#3d3d3d] rounded-3xl p-8 text-center space-y-4'>
             <h2 className='text-2xl font-bold text-white mb-4'>Test Completed!</h2>
             
-            {/* Large Score Display */}
+          
             <div className='flex items-center justify-center gap-4 mb-4'>
               <div className={`text-7xl font-bold ${performanceColor}`}>
                 {score}
@@ -100,7 +99,7 @@ export default function ResultsPage({
               </div>
             </div>
             
-            {/* Percentage Circle */}
+        
             <div className='flex justify-center mb-4'>
               <div className='relative w-32 h-32'>
                 <svg className='transform -rotate-90 w-32 h-32'>
@@ -138,7 +137,7 @@ export default function ResultsPage({
             </p>
           </div>
 
-          {/* Stats Grid */}
+
           <div className='grid grid-cols-2 gap-4'>
             <div className='bg-[#202020] border border-green-500/30 rounded-2xl p-4 text-center'>
               <div className='text-3xl font-bold text-green-400 mb-1'>{score}</div>
@@ -150,7 +149,6 @@ export default function ResultsPage({
             </div>
           </div>
 
-          {/* Question Review Section */}
           {incorrectQuestions.length > 0 && (
             <div className='bg-[#202020] border border-[#3d3d3d] rounded-2xl p-6 space-y-4'>
               <h3 className='text-xl font-bold text-white mb-4'>Review Incorrect Answers</h3>
@@ -182,7 +180,6 @@ export default function ResultsPage({
             </div>
           )}
 
-          {/* All Questions Overview */}
           <div className='bg-[#202020] border border-[#3d3d3d] rounded-2xl p-6'>
             <h3 className='text-lg font-bold text-white mb-4'>Question Overview</h3>
             <div className='grid grid-cols-5 gap-2'>
@@ -205,7 +202,7 @@ export default function ResultsPage({
             </div>
           </div>
 
-          {/* Action Buttons */}
+
           <div className='flex gap-4'>
             <button
               onClick={onReviewTest}

@@ -1,16 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  /* single values */
   --color-Mpurple: #968EF3;
   --color-text: #0D0D0D;
   --color-border-grey: #4C4C4C;
-
-  /* a small scale (optional) */
   --color-softCoral-100: #FFE9E9;
   --color-softCoral-500: #FF6B6B;
-
-  /* your brutalistic palette (example) */
   --color-mutedOlive: #A3B18A;
   --color-warmBeige: #EADBC8;
   --color-coolMint: #A8DADC;
@@ -18,25 +13,20 @@
 }
 
 @theme {
-  /* display font utility */
   --font-display: "Oswald", sans-serif;
-
-  /* system UI stack — this creates the font-sans utility */
   --font-sans: Helvetica, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-/* Reset popup dimensions */
 .popup {
-  position: fixed; /* Changed from absolute */
-  width: 400px; /* Fixed width for popup */
-  min-height: 500px; /* Minimum height for popup */
-  height: auto; /* Allow height to grow based on content */
+  position: fixed;
+  width: 400px;
+  min-height: 500px;
+  height: auto;
   background: #1a1a1a;
   border-radius: 12px;
 }
 
-/* Glow effect */
 .popup::before {
   content: "";
   position: absolute;
@@ -55,7 +45,6 @@
   z-index: 1;
 }
 
-/* Base styles */
 html,
 body {
   width: 400px;
@@ -66,7 +55,6 @@ body {
   background-color: #1a1a1a;
 }
 
-/* Scrollbar styles */
 ::-webkit-scrollbar {
   width: 8px;
 }

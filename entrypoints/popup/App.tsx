@@ -12,7 +12,7 @@ import icon from '../../assets/Icon.png';
 
 
 function App() {
-  const [screen, setScreen] = useState('home'); // 'home', 'preview', 'test', 'results', 'history'
+  const [screen, setScreen] = useState('home'); 
   const [inputPrompt, setInputPrompt] = useState('');
   const [temperature, setTemperature] = useState(1.0);
   const [topK, setTopK] = useState(3);
@@ -22,12 +22,11 @@ function App() {
   const [session, setSession] = useState<any>(null);
   const [defaultTemp, setDefaultTemp] = useState(1.0);
   const [maxTopK, setMaxTopK] = useState(8);
-  const [shouldCancel, setShouldCancel] = useState(false); // Flag to signal cancellation
+  const [shouldCancel, setShouldCancel] = useState(false); 
 
-  // Test state
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [userAnswers, setUserAnswers] = useState<any>({});
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(600); 
   const [testStarted, setTestStarted] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<Set<TestType>>(new Set(['mcq']));
   const [numQuestions, setNumQuestions] = useState(10);
@@ -41,10 +40,8 @@ function App() {
 
   useEffect(() => {
     const initialize = async () => {
-      // Check if generation completed while popup was closed
       const savedState = await chrome.storage.local.get(['loading', 'testData', 'screen', 'activeTabInfo', 'selectedTypes', 'numQuestions', 'generationCompleted']);
 
-      // If generation completed in background, show preview
       if (savedState.generationCompleted && savedState.testData) {
         setTestData(savedState.testData);
         setScreen('preview');
@@ -54,14 +51,12 @@ function App() {
         return;
       }
 
-      // If we were loading, continue generation (it may still be in progress via background)
       if (savedState.loading && savedState.activeTabInfo && savedState.selectedTypes && savedState.numQuestions && !savedState.testData) {
         setLoading(true);
         setActiveTabInfo(savedState.activeTabInfo);
         setSelectedTypes(new Set(savedState.selectedTypes));
         setNumQuestions(savedState.numQuestions);
         await loadSavedTests();
-        // Check if still loading after a moment, then restart if needed
         setTimeout(async () => {
           const check = await chrome.storage.local.get(['testData', 'generationCompleted']);
           if (!check.testData && !check.generationCompleted) {
@@ -71,7 +66,6 @@ function App() {
         return;
       }
 
-      // Don't reset if we already have test data
       if (testData) {
         await loadSavedTests();
         return;
@@ -92,7 +86,6 @@ function App() {
     saveTestState();
   }, [screen, currentQuestion, userAnswers, timeLeft, testStarted]);
 
-  // Timer effect
   useEffect(() => {
     if (testStarted && screen === 'test' && timeLeft > 0) {
       const timer = setInterval(() => {
@@ -151,24 +144,18 @@ function handleDismissAnswer() {
 
   function extractJSON(text: string) {
     try {
-      // First attempt: Try parsing the entire text as JSON
       try {
         return JSON.parse(text);
       } catch {
-        // Continue to extraction methods
       }
 
-      // Remove markdown code fences if present
       let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
 
-      // Try parsing after removing code fences
       try {
         return JSON.parse(cleaned);
       } catch {
-        // Continue to manual extraction
       }
 
-      // Look for content between first { and last }
       const firstBrace = cleaned.indexOf('{');
       const lastBrace = cleaned.lastIndexOf('}');
 
@@ -178,17 +165,15 @@ function handleDismissAnswer() {
 
       const jsonStr = cleaned.substring(firstBrace, lastBrace + 1);
 
-      // Try parsing the extracted portion directly
       try {
         return JSON.parse(jsonStr);
       } catch {
-        // Last resort: try to fix common JSON issues
         const fixed = jsonStr
-          .replace(/,\s*}/g, '}')  // Remove trailing commas before }
-          .replace(/,\s*]/g, ']')  // Remove trailing commas before ]
-          .replace(/\n/g, ' ')     // Replace newlines with spaces
-          .replace(/\r/g, '')      // Remove carriage returns
-          .replace(/\t/g, ' ');    // Replace tabs with spaces
+          .replace(/,\s*}/g, '}')  
+          .replace(/,\s*]/g, ']') 
+          .replace(/\n/g, ' ')     
+          .replace(/\r/g, '')     
+          .replace(/\t/g, ' ');   
 
         return JSON.parse(fixed);
       }
@@ -202,9 +187,9 @@ function handleDismissAnswer() {
   async function handleGenerateMCQs() {
     setLoading(true);
     setError('');
-    setShouldCancel(false); // Reset cancel flag when starting new generation
+    setShouldCancel(false);
 
-    // Mark generation as in progress
+
     await chrome.storage.local.set({
       loading: true,
       generationCompleted: false,
@@ -213,7 +198,6 @@ function handleDismissAnswer() {
       numQuestions
     });
 
-    // Use setTimeout to allow generation to continue even if popup closes
     const generationPromise = (async () => {
       try {
         if (selectedTypes.size === 0) {
@@ -258,7 +242,6 @@ function handleDismissAnswer() {
         const maxAttempts = 3;
 
         while (attempts < maxAttempts) {
-          // Check if user clicked cancel
           if (shouldCancel) {
             throw new Error('Generation cancelled by user');
           }
@@ -282,12 +265,10 @@ function handleDismissAnswer() {
           }
         }
 
-        // Check again before saving (in case cancel was clicked while processing)
         if (shouldCancel) {
           throw new Error('Generation cancelled by user');
         }
 
-        // Save completion to storage (works even if popup closed)
         await chrome.storage.local.set({
           testData: parsed,
           loading: false,
@@ -310,7 +291,6 @@ function handleDismissAnswer() {
       }
     })();
 
-    // Don't await - let it run in background
     generationPromise.catch(err => {
       console.error('Background generation error:', err);
     });
@@ -330,7 +310,6 @@ function handleDismissAnswer() {
         return;
       }
 
-      // Check if the question is about the current page
       const lowerPrompt = inputPrompt.toLowerCase();
       const needsPageContent = 
         lowerPrompt.includes('this page') ||
@@ -342,19 +321,17 @@ function handleDismissAnswer() {
 
       let contextualPrompt = inputPrompt;
 
-      // Fetch page content if needed
       if (needsPageContent) {
         try {
           const page = await fetchActiveTabContent();
-          const pageText = `${page.title}\n\n${page.text}`.slice(0, 50000); // Limit to 50k chars
+          const pageText = `${page.title}\n\n${page.text}`.slice(0, 50000); 
           contextualPrompt = `Based on the following page content, ${inputPrompt}\n\nPage Content:\n${pageText}`;
         } catch (e) {
           console.error('Failed to fetch page content:', e);
-          // Continue with original prompt if fetch fails
+        
         }
       }
 
-      // Create a fresh session for Q&A (don't reuse the JSON generation session)
       const qaSession = await (self as any).LanguageModel.create({
         initialPrompts: [
           { role: 'system', content: 'You are a helpful assistant. Provide clear, concise answers in plain text. When summarizing, be thorough but concise.' }
@@ -366,7 +343,6 @@ function handleDismissAnswer() {
       const result = await qaSession.prompt(contextualPrompt);
       setLlmResponse(result);
       
-      // Clean up the Q&A session
       qaSession.destroy();
     } catch (e: any) {
       console.error('LLM question error:', e);
@@ -378,7 +354,6 @@ function handleDismissAnswer() {
 
   function isTestGenerationRequest(prompt: string): boolean {
     const lower = prompt.toLowerCase().trim();
-    // More specific keywords that indicate test generation
     return lower.startsWith('generate') ||
       lower.startsWith('create') ||
       lower.includes('generate test') ||
@@ -417,7 +392,6 @@ function handleDismissAnswer() {
 
   async function loadSavedState() {
     try {
-      // Don't load if we're currently loading or have active state
       if (loading) {
         return;
       }
@@ -430,7 +404,6 @@ function handleDismissAnswer() {
         'loading'
       ]);
 
-      // Only restore state if we're not in the middle of generation
       if (!result.loading) {
         if (result.inputPrompt) setInputPrompt(result.inputPrompt);
         if (result.temperature) setTemperature(result.temperature);
@@ -517,11 +490,9 @@ function handleDismissAnswer() {
 
       const title = testData.source_title?.split('|')[0]?.trim() || `Test ${new Date().toLocaleDateString()}`;
 
-      // Get fresh saved tests to avoid stale state
       const result = await chrome.storage.local.get(['savedTests']);
       const currentSavedTests = result.savedTests || [];
 
-      // Check if a test with the same title already exists
       const existingIndex = currentSavedTests.findIndex((t: SavedTest) => t.title === title);
 
       const savedTest: SavedTest = {
@@ -536,11 +507,9 @@ function handleDismissAnswer() {
 
       let updated: SavedTest[];
       if (existingIndex >= 0) {
-        // Update existing test
         updated = [...currentSavedTests];
         updated[existingIndex] = savedTest;
       } else {
-        // Add new test
         updated = [...currentSavedTests, savedTest];
       }
 
@@ -588,7 +557,6 @@ function handleDismissAnswer() {
   }
 
   function handleRetakeTest(savedTest: SavedTest) {
-    // Reset answers and start fresh
     setTestData(savedTest.testData);
     setCurrentQuestion(0);
     setUserAnswers({});
@@ -599,7 +567,6 @@ function handleDismissAnswer() {
   }
 
   function handleReviewTest(savedTest: SavedTest) {
-    // Load test with answers for review (read-only mode)
     setTestData(savedTest.testData);
     setCurrentQuestion(0);
     setUserAnswers(savedTest.userAnswers || {});
@@ -637,10 +604,9 @@ function handleDismissAnswer() {
   }
 
   async function handleStartTest() {
-    // Always start from the beginning for a new test
     setCurrentQuestion(0);
     setUserAnswers({});
-    setTimeLeft(600); // Reset timer to 10 minutes
+    setTimeLeft(600); 
     setScreen('test');
     setTestStarted(true);
   }
@@ -655,7 +621,6 @@ function handleDismissAnswer() {
   async function handleSubmitTest() {
     setTestStarted(false);
 
-    // Save as completed test
     if (testData) {
       const score = calculateScore();
       const percentage = (score / testData.questions.length) * 100;
@@ -664,7 +629,6 @@ function handleDismissAnswer() {
       const result = await chrome.storage.local.get(['savedTests']);
       const currentSavedTests = result.savedTests || [];
 
-      // Check if already exists as active test, if so remove it first
       const existingIndex = currentSavedTests.findIndex((t: SavedTest) => t.id === testData.id && !t.isCompleted);
 
       const completedTest: SavedTest = {
@@ -716,7 +680,6 @@ function handleDismissAnswer() {
     return correct;
   }
 
-  // Home Screen
   if (screen === 'home') {
     return (
       <>
@@ -738,7 +701,7 @@ function handleDismissAnswer() {
   onReset={() => { setLoading(false); reset(); }}
   isTestGenerationRequest={isTestGenerationRequest}
 
-  // NEW:
+  
   onDismissAnswer={handleDismissAnswer}
 />
         <HistoryModal
@@ -754,11 +717,9 @@ function handleDismissAnswer() {
           onRetakeTest={handleRetakeTest}
           onContinueTest={(test) => { loadSavedTest(test); setShowHistory(false); }}
         />
-        {/* Loading Overlay */}
         {loading && (
           <div className='fixed inset-0 flex items-center justify-center  backdrop-blur-3xl bg-black/60 z-40'>
             <div className='w-[720px] relative  overflow-hidden' >
-              {/* Header - Tab style */}
               <div className='pl-6'>
 
 
@@ -777,14 +738,11 @@ function handleDismissAnswer() {
                 </div>
               </div>
 
-              {/* Main content - two columns */}
               <div className='px-6 pt-4 flex gap-3'>
-                {/* Left: preview + spinner */}
                 <div className='flex-1 bg-black/20 rounded-xl p-4 border border-white/5'>
                   <div className='mb-3'>
                     <div className='text-xs text-neutral-400 mb-2'>Preview</div>
                     <div className='h-40 overflow-hidden rounded-md text-sm text-neutral-200 leading-relaxed'>
-                      {/* Show a trimmed preview of the page text if available */}
                       {activeTabInfo?.title ? (
                         <div className='prose max-w-none wrap-break-word'>{activeTabInfo.title}</div>
                       ) : (
@@ -794,20 +752,16 @@ function handleDismissAnswer() {
                   </div>
 
                   <div className='flex items-start gap-3 w-full mt-4'>
-                    {/* Left reserved column: fixed width so layout won't shrink if icon is removed */}
                     <div className='w-24 shrink-0 flex flex-col items-start'>
                       <img src={icon} alt='App icon' className='w-6 h-6 rounded-md object-cover border border-white/6' />
                       <div className='text-xs text-neutral-400 mt-2 text-start'>Generating test questions... This may take a moment.</div>
                     </div>
 
-                    {/* Right area: keeps space for additional content in future */}
                     <div className='flex-1 flex items-center'>
-                      {/* Intentionally left blank to preserve width and alignment */}
                     </div>
                   </div>
                 </div>
 
-                {/* Right: details & actions */}
                 <div className='w-60 flex flex-col gap-3'>
                   <div className='bg-black/20 rounded-xl p-3 border border-white/5'>
                     <div className='text-xs text-neutral-400 mb-2'>Selected Types</div>
@@ -825,7 +779,6 @@ function handleDismissAnswer() {
                   </div>
 
                   <div className='mt-auto pb-1 flex flex-col gap-2'>
-                    {/* <button onClick={() => { setLoading(false); setScreen('home'); }} className='w-full px-4 py-2 rounded-lg bg-[#1f1f2e] text-neutral-300 hover:bg-[#2a2a3d]'>Stop & Go Home</button> */}
                     <button onClick={() => { reset(); setLoading(false); chrome.storage.local.remove(['loading', 'generationCompleted', 'testData']); }} className='w-full px-4 py-4 rounded-full bg-yellow-500 font-serif text-black font-light border transition-colors border-yellow-500 hover:border-yellow-500 hover:border hover:bg-yellow-900 hover:text-white duration-500'>Cancel & Clear</button>
                   </div>
                 </div>
@@ -837,7 +790,6 @@ function handleDismissAnswer() {
     );
   }
 
-  // Preview Screen
   if (screen === 'preview' && testData) {
     return (
       <>
@@ -867,7 +819,6 @@ function handleDismissAnswer() {
     );
   }
 
-  // Test Screen
   if (screen === 'test' && testData) {
     return (
       <TestPage
@@ -888,7 +839,6 @@ function handleDismissAnswer() {
     );
   }
 
-  // Results Screen
   if (screen === 'results' && testData) {
     return (
       <ResultsPage

@@ -134,7 +134,6 @@ export function generateFallbackQuestions(
     typeIndex++;
   });
 
-  // Fill remaining slots if needed
   while (questions.length < count) {
     const type = Array.from(selectedTypes)[questions.length % selectedTypes.size];
     

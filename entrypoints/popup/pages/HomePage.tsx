@@ -52,8 +52,8 @@ export default function HomePage({
           <button className='w-10 h-10 flex items-center justify-center hover:bg-[#2A2A2A] rounded-lg transition-colors'>
             <Home className='w-5 h-5 text-gray-400' />
           </button>
-          <h1 className="text-[16px] text-neutral-200 font-medium">
-            Manifes<span className='font-bold italic text-yellow-400'>T</span><span className='text-yellow-400'>est</span>
+          <h1 className="text-[16px] text-neutral-200 font-normal">
+            Manifes<span className='font-normal italic text-yellow-400'>T</span><span className='text-yellow-400'>est</span>
           </h1>
         </div>
         <div className='flex items-center gap-2'>

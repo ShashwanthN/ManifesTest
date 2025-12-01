@@ -34,7 +34,7 @@ export default function HistoryModal({
     <div className='fixed inset-0 flex items-center justify-center bg-black/80 z-[100]' onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       <div className='bg-[#202020] border border-[#3d3d3d] rounded-2xl p-6 w-[90%] max-w-md overflow-hidden' onClick={(e) => e.stopPropagation()} style={{ maxHeight: '85vh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
         <div className='flex items-center justify-between mb-4 sticky top-0 bg-[#202020] z-10 pb-2'>
-          <h2 className='text-xl text-white font-bold'>Test History</h2>
+          <h2 className='text-xl text-white font-serif font-normal'>Test History</h2>
           <button 
             onClick={onClose}
             className='w-8 h-8 flex items-center justify-center hover:bg-[#3A3A3A] rounded-lg transition-colors'
